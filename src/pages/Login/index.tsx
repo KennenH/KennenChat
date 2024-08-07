@@ -1,8 +1,10 @@
 import './index.scss';
 import { Card, Form, Input, Button, message } from 'antd';
+import React from 'react';
+import logo from '@/assets/logo.png';
 import { useDispatch } from 'react-redux';
 
-const Login = () => {
+const Login: React.FC = () => {
   const dispatch = useDispatch();
   const onFinish = (values: any) => {
     console.log(values);
@@ -10,7 +12,7 @@ const Login = () => {
   return (
     <div className="login">
       <Card className="login-container">
-        <img className="login-logo" alt="" />
+        <img className="login-logo" src={logo} alt="" />
         <Form onFinish={onFinish} validateTrigger="onBlur">
           <Form.Item
             name="mobile"
