@@ -1,0 +1,29 @@
+.side-bar-footer-container {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 20px;
+}
+
+.side-bar-footer-left {
+    
+}
+
+.side-bar-footer-left > *:not(:last-child) {
+    margin-right: 15px;
+    
+}
+
+.side-bar-footer-actions {
+    background-color: #1e1e1e;
+    border: none;
+    border-radius: 10px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    overflow: hidden;
+    color: #bbb;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+}

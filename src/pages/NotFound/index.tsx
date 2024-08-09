@@ -1,6 +1,6 @@
 const NotFound = () => {
     return (
-        <div>404</div>
+        <div>Σ(っ °Д °;)っ 咦，这里什么都没有</div>
     );
 };
 

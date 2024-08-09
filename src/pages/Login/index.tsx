@@ -3,11 +3,22 @@ import { Card, Form, Input, Button, message } from 'antd';
 import React from 'react';
 import logo from '@/assets/logo.png';
 import { useDispatch } from 'react-redux';
+import { fetchLogin } from '@/store/modules/user';
+import { UnknownAction } from '@reduxjs/toolkit';
+import { useNavigate } from 'react-router-dom';
+
+export interface ILogin {
+  mobile: string,
+  code: string
+}
 
 const Login: React.FC = () => {
+  const nav = useNavigate();
   const dispatch = useDispatch();
-  const onFinish = (values: any) => {
-    console.log(values);
+  const onFinish = async (params: ILogin) => {
+    await dispatch(fetchLogin(params) as unknown as UnknownAction);
+    nav('/board');
+    message.success('');
   };
   return (
     <div className="login">
