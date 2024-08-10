@@ -9,11 +9,11 @@ import Setting from '@/pages/Setting';
 
 const router = createBrowserRouter([
   {
-    index: true,
+    path: '/login',
     element: <Login />,
   },
   {
-    path: '/home',
+    path: '/',
     element: (
     // <AuthRoute>
       <HomeContainer />
@@ -28,12 +28,12 @@ const router = createBrowserRouter([
         path: 'setting',
         element: <Setting />
       },
+      {
+        path: '*',
+        element: <NotFound />
+      }
     ],
   },
-  {
-    path: '*',
-    element: <NotFound />
-  }
 ]);
 
 export default router;

@@ -1,7 +1,17 @@
+import './index.scss';
+import logo from '@/assets/gpt.svg';
+
 const NotFound = () => {
-    return (
-        <div>Σ(っ °Д °;)っ 咦，这里什么都没有</div>
-    );
+  return (
+    <>
+      <div className='not-found-container'>
+        <img
+          className='not-found' 
+          src={logo}
+          />
+      </div>
+    </>
+  );
 };
 
 export default NotFound;

@@ -1,0 +1,52 @@
+.chat-card-container {
+  cursor: grab;
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  content-visibility: auto;
+  background-color: #1e1e1e;
+  border: 2px solid transparent;
+  transition: background-color .3s ease;
+
+  &.--selected {
+    border: 2px solid #1d93ab;
+  }
+  
+  &:hover {
+    background-color: #323232;
+
+    .chat-card-delete {  
+      opacity: .5;
+      transform: translateX(-4px);
+    }
+  }
+}
+
+.chat-card-title {
+  display: block;
+  font-size: 14px;
+  overflow: hidden;
+  font-weight: bold;
+  text-overflow: ellipsis;
+}
+
+.chat-card-info {
+  display: flex;
+  color: #a6a6a6;
+  font-size: 12px;
+  margin-top: 8px;
+  justify-content: space-between;
+
+  & > * {
+    margin: 0;
+  }
+}
+
+.chat-card-delete {
+  top: 4px;
+  right: 0;
+  opacity: 0;
+  cursor: pointer;
+  position: absolute;
+  transition: all .3s ease;
+}
