@@ -37,12 +37,6 @@ const handleClickSetting = (nav: NavigateFunction) => {
 const initialChatList = [createChatCard()];
 
 const HomeContainer: React.FC = () => {
-  useEffect(() => {
-
-    return (() => {
-
-    });
-  },[]);
 
   const nav = useNavigate();
 
@@ -108,7 +102,10 @@ const HomeContainer: React.FC = () => {
       </div>
       <div className="home-chat-container">
         {/* 渲染二级路由的地方 */}
-        <Outlet />
+        <Outlet
+          // 将当前选中的 chat card 进行传递
+          context={chatList[selectedIdx]}
+        />
       </div>
     </div>
   )

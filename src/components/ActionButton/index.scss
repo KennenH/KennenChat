@@ -1,0 +1,22 @@
+.action-button {
+  color: #bbb;
+  padding: 10px;
+  display: flex;
+  outline: none;
+  cursor: pointer;
+  overflow: hidden;
+  align-items: center;
+  border-radius: 10px;
+  justify-content: center;
+  transition: all .3s ease;
+  background-color: #1e1e1e;
+  border: 1px solid hsla(0,0%,100%,.192);
+
+  user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+
+  &:hover {
+    border: 1px solid #1d93ab;
+  }
+}
