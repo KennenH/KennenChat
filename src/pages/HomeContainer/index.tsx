@@ -33,7 +33,10 @@ const handleClickSetting = (nav: NavigateFunction) => {
   nav('/setting');
 }
 
-// 初始化一个 chat card
+/**
+ * 初始化 chat card list
+ * 从本地缓存获取，无缓存则新建一个
+ */ 
 const initialChatList = [createChatCard()];
 
 const HomeContainer: React.FC = () => {
