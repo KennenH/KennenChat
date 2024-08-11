@@ -1,10 +1,6 @@
-
-// 侧栏宽度
-$--side-bar-width: 300px;
-
 .home {
-  width: 90vw;
-  height: 90vh;
+  width: var(--full-weight);
+  height: var(--full-height);
   display: flex;
   overflow: hidden;
   min-width: 600px;
@@ -14,20 +10,39 @@ $--side-bar-width: 300px;
   box-sizing: border-box;
   background-color: #1e1e1e;
   border: 1px solid hsla(0,0%,100%,.192);
+
+  &.full-screen {
+    --full-weight: 100vw;
+    --full-height: 100vh;
+
+    max-width: 100vw;
+    border-radius: 0;
+  }
 }
 
 .home-side-bar-container {
   display: flex;
   padding: 20px;
   flex-direction: column;
-  width: $--side-bar-width;
+  width: var(--side-bar-width);
   background-color: #1b262a;
   justify-content: space-around;
 }
 
 .home-chat-container {
   display: flex;
-  padding: 20px;
   flex-direction: column;
-  width: calc(100% - $--side-bar-width);
+  width: calc(100% - var(--side-bar-width));
+}
+
+.home-chat-edit-modal-mask {
+  z-index: 9999;
+  top: 0;
+  left: 0;
+  position: fixed;
+  height: var(--full-height);
+  background-color: rgba(0,0,0,.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

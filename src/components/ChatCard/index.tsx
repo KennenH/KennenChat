@@ -10,7 +10,7 @@ export enum Sender {
   NOT_ME = 1,
 }
 
-export interface ChatContent {
+export interface IChatMessage {
   content: string,
   sender: Sender,
   time: Date,
@@ -19,7 +19,7 @@ export interface ChatContent {
 
 export interface IChatCardProps {
   title: string,
-  conversasionList: ChatContent[],
+  messageList: IChatMessage[],
 
   isSelected?: boolean,
   isDragging?: boolean,
@@ -30,7 +30,7 @@ export interface IChatCardProps {
 
 const ChatCard: React.FC<IChatCardProps> = ({
   title,
-  conversasionList,
+  messageList: messageList,
 
   isSelected,
   isDragging,
@@ -38,7 +38,7 @@ const ChatCard: React.FC<IChatCardProps> = ({
   handleClickCard,
 }: IChatCardProps) => {
   
-  const len = conversasionList?.length ?? 1;
+  const len = messageList?.length ?? 1;
 
   return (
     <div 
@@ -54,8 +54,8 @@ const ChatCard: React.FC<IChatCardProps> = ({
         </p>
         <p>
           {
-            conversasionList 
-            && formatDate(conversasionList[len - 1].time)
+            messageList 
+            && formatDate(messageList[len - 1].time)
           }
         </p>
       </div>

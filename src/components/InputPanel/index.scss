@@ -1,0 +1,83 @@
+.input-panel-container {
+  position: relative;
+  width: 100%;
+  padding: 10px 20px 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  border-top: var(--border-in-light);
+  box-shadow: var(--card-shadow);
+}
+
+.input-panel-prompt-container {
+  min-height: 20px;
+  width: 100%;
+  max-height: 50vh;
+  overflow: auto;
+  display: flex;
+  flex-direction: column-reverse;
+  background-color: var(--white);
+  border: var(--border-in-light);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+}
+
+.input-panel-actions-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.input-panel-input-container {
+  cursor: text;
+  display: flex;
+  flex: 1 1;
+  border-radius: 10px;
+  border: var(--border-in-light);
+}
+
+.input-panel-input-area {
+  height: 100%;
+  width: 100%;
+  border-radius: 10px;
+  background-color: var(--white);
+  color: var(--black);
+  font-family: inherit;
+  padding: 10px 90px 10px 14px;
+  border: none;
+  resize: none;
+  outline: none;
+  box-sizing: border-box;
+  min-height: 68px;
+  box-shadow: none;
+  
+  &::-webkit-scrollbar {
+      width: 8px; /* 设置滚动条的宽度 */
+  }
+
+  &::-webkit-scrollbar-track {
+      background: transparent; /* 滚动条轨道的背景色 */
+  }
+
+  &::-webkit-scrollbar-thumb {
+      background: #404040; /* 滚动条的颜色 */
+      border-radius: 4px; /* 滚动条的圆角 */
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+      background: #404040; /* 滚动条悬停时的颜色 */
+  }
+
+  &:focus {
+  }
+}
+
+.input-panel-send-button {
+  right: 30px;
+  bottom: 32px;
+  color: #fff;
+  position: absolute;
+  background-color: var(--primary);
+  border: none;
+  font-size: 12px;
+}

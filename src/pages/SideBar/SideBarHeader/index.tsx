@@ -6,7 +6,7 @@ const SideBarHeader: React.FC = () => {
         <>
             <div className='side-bar-header-container'>
                 <div>
-                    <h3 className='side-bar-header-title'>NextChat</h3>
+                    <h3 className='side-bar-header-title'>KennenChat</h3>
                     <p className='side-bar-header-text'>Build your own AI assistant.</p>
                 </div>
                 <img

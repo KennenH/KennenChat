@@ -2,8 +2,8 @@ import { createBrowserRouter } from 'react-router-dom';
 
 import NotFound from '@/pages/NotFound';
 import HomeContainer from '@/pages/HomeContainer';
-import Chat from '@/pages/Chat';
-import Setting from '@/pages/Setting';
+import Chat from '@/pages/Window/Chat';
+import Setting from '@/pages/Window/Setting';
 
 const router = createBrowserRouter([
   {

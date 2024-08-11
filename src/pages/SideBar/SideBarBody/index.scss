@@ -2,4 +2,22 @@
   flex: 1;
   overflow: auto;
   overflow-x: hidden;
+
+  &::-webkit-scrollbar {
+    width: 8px; /* 设置滚动条的宽度 */
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent; /* 滚动条轨道的背景色 */
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #404040; /* 滚动条的颜色 */
+    border-radius: 4px; /* 滚动条的圆角 */
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #404040; /* 滚动条悬停时的颜色 */
+  }
+
 }

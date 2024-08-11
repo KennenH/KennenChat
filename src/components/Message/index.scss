@@ -1,0 +1,128 @@
+.message-wrapper-container {
+  display: flex;
+  flex-direction: row;
+
+  &:last-child {
+    animation: message-slide-in .3s ease;
+  }
+
+  &.--me {
+    flex-direction: row-reverse;
+  }
+}
+
+.message-container {
+  max-width: var(--message-width);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  &.--me {
+    align-items: flex-end;
+  }
+}
+
+.message-header {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+
+  &.--me {
+    flex-direction: row-reverse;
+  }
+}
+
+.message-header-avatar {
+  width: 18px;
+  background-color: rgb(217, 217, 217);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  cursor: pointer;
+  transition: all .3s ease;
+  overflow: hidden;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  outline: none;
+  border: 1px solid hsla(0,0%,100%,.192);
+  color: #168923;
+
+  &.--me {
+    background-color: var(--white);
+  }
+}
+
+.message-header-actions-container {
+  opacity: 0;
+  display: flex;
+  margin: 0 10px;
+  font-size: 12px;
+  pointer-events: none;
+  align-items: flex-end;
+  transition: all .3s ease;
+  justify-content: space-between;
+  transform: scale(.9) translateY(5px);
+}
+
+.message-item {
+  box-sizing: border-box;
+  max-width: 100%;
+  margin-top: 10px;
+  border-radius: 10px;
+  background-color: rgba(0,0,0,.05);
+  padding: 10px;
+  font-size: 14px;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  user-select: text;
+  word-break: break-word;
+  border: var(--border-in-light);
+  position: relative;
+  transition: all .3s ease;
+
+  &.--me {
+    background-color: var(--second);
+  }
+}
+
+.message-content {
+  -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  margin: 0;
+  color: var(--color-fg-default);
+  background-color: var(--color-canvas-default);
+  font-size: 12px;
+  line-height: 1.5;
+  word-wrap: break-word;
+}
+
+.message-date {
+  font-size: 12px;
+  opacity: .2;
+  white-space: nowrap;
+  transition: all .6s ease;
+  color: var(--black);
+  text-align: right;
+  width: 100%;
+  box-sizing: border-box;
+  padding-right: 10px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+
+// 消息体自下往上淡入
+@keyframes message-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,4 +1,3 @@
-import { ILogin } from '@/pages/Login';
 import { getTokenLocal, request, setTokenLocal as _setToken, setTokenLocal } from '@/utils';
 import { createSlice, Dispatch, UnknownAction } from '@reduxjs/toolkit';
 
@@ -20,12 +19,6 @@ const userStore = createSlice({
 const { setToken } = userStore.actions;
 const userReducer = userStore.reducer;
 
-const fetchLogin = (params: ILogin) => {
-  return async (dispatch: any) => {
-    const res = await request.post('/authorizations', params);
-    dispatch(setToken(res.data.token));
-  }
-}
 
-export { setToken, fetchLogin };
+export { setToken };
 export default userReducer;
