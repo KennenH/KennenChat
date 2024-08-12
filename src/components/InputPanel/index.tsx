@@ -1,15 +1,17 @@
 import { Button } from 'antd';
 import './index.scss';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 
 interface IInputPanelProps {
   handleClickSendMessage: Function,
+  onTextAreaFocused: Function,
 }
 
 const InputPanel: React.FC<IInputPanelProps> = (props: IInputPanelProps) => {
 
   const {
     handleClickSendMessage,
+    onTextAreaFocused,
   } = props;
 
   /**
@@ -20,18 +22,33 @@ const InputPanel: React.FC<IInputPanelProps> = (props: IInputPanelProps) => {
   /**
    * 输入区域输入改变
    */
-  const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const onInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputText(event.target.value);
   }
 
   /**
-   * 点击发送按钮
+   * 执行发送
    */
-  const handleClickSend = () => {
+  const sendMessage = () => {
     // 交给外部处理文本输入内容
     handleClickSendMessage(inputText);
     // 清空文本
     setInputText('');
+  }
+
+  /**
+   * 监听快捷键按下
+   */
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && event.shiftKey) {
+      event.preventDefault();
+      // 换行
+      setInputText(inputText + '\n');
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      // 发送
+      sendMessage();
+    }
   }
 
   return (
@@ -48,13 +65,15 @@ const InputPanel: React.FC<IInputPanelProps> = (props: IInputPanelProps) => {
             id='input-area'
             className='input-panel-input-area'
             placeholder='Enter 发送，Shift + Enter 换行'
-            onInput={handleInput}
-          >
-            {inputText}
-          </textarea>
+            onInput={onInputChange}
+            value={inputText}
+            onKeyDown={handleKeyDown}
+            onFocus={() => onTextAreaFocused()}
+            onClick={() => onTextAreaFocused()}
+          />
           <Button
             className='input-panel-send-button'
-            onClick={handleClickSend}
+            onClick={sendMessage}
           >
             发送
           </Button>

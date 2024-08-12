@@ -10,6 +10,7 @@ import { uniqueId } from "lodash";
 import { IChatProps } from "../Window/Chat";
 import { ISettingProps } from "../Window/Setting";
 import classNames from "classnames";
+import _ from "lodash";
 
 /**
  * 初始化时和清空时自动生成一条新的聊天
@@ -140,12 +141,10 @@ const HomeContainer: React.FC = () => {
    * 输入区域点击发送按钮
    */
   const handleClickSendMessage = (message: string) => {
-    const newChatList = [...chatList];
+    const newChatList = _.cloneDeep(chatList);
     newChatList[selectedIdx]
       .messageList
-      .push(
-        createMessage(message, Sender.ME)
-      );
+      .push(createMessage(message, Sender.ME));
     setChatList(newChatList);
   };
 

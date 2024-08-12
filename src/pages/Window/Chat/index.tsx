@@ -3,8 +3,8 @@ import './index.scss';
 import WindowHeader, { WindowHeaderActionConfig, WindowHeaderTitleConfig } from '@/components/WindowHeader';
 import { IChatCardProps } from '@/components/ChatCard';
 import Message from '@/components/Message';
-import { isTimeDifferenceMoreThanFiveMinutes } from '@/utils/utils';
 import InputPanel from '@/components/InputPanel';
+import { useLayoutEffect, useRef, useState } from 'react';
 
 export interface IChatProps {
   chatCardProps: IChatCardProps,
@@ -12,6 +12,19 @@ export interface IChatProps {
   handleToggleFullScreen: Function,
   handleClickEdit: Function,
   handleClickSendMessage: Function,
+}
+
+/**
+ * 元素滚动至底部
+ */
+const scrollToBottom = (
+  element: HTMLElement | null,
+) => {
+  if (!element) {
+    return;
+  }
+
+  element.scrollTop = element.scrollHeight - element.clientHeight;
 }
 
 /**
@@ -27,6 +40,13 @@ const Chat: React.FC = () => {
     handleClickEdit,
     handleClickSendMessage,
   } = useOutletContext() as IChatProps;
+
+  const messageListRef = useRef<HTMLDivElement>(null);
+
+  // 当消息列表变化时滚动至底部
+  useLayoutEffect(() => {
+    scrollToBottom(messageListRef.current);
+  }, [chatCardProps.messageList]);
 
   const titleConfig: WindowHeaderTitleConfig = { 
     primaryTitle: chatCardProps.title,
@@ -46,7 +66,7 @@ const Chat: React.FC = () => {
     },
   ];
 
-  const messageList = 
+  const messageData = 
     chatCardProps
       .messageList
       .map(msg => {
@@ -64,11 +84,14 @@ const Chat: React.FC = () => {
         titleConfig={titleConfig}
         actionConfigs={actionConfigs}
       />
-      <div className='chat-body'>
-        {messageList}
+      <div 
+        ref={messageListRef}
+        className='chat-body'>
+        {messageData}
       </div>
       <InputPanel
         handleClickSendMessage={handleClickSendMessage}
+        onTextAreaFocused={() => scrollToBottom(messageListRef.current)}
       />
     </>
   );

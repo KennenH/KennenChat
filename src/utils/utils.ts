@@ -13,15 +13,3 @@ export const formatDate = (date?: Date): string => {
     
   return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;  
 }
-
-/**
- * 两个时间相差是否大于等于5分钟
- */
-export const isTimeDifferenceMoreThanFiveMinutes = (date1?: Date, date2?: Date): boolean => {  
-  if (!date1 || !date2) {
-    return false;
-  }
-  
-  const diff = Math.abs(date1.getTime() - date2.getTime());  
-  return diff >= 5 * 1000 * 60;
-}
