@@ -16,7 +16,16 @@ root.render(
     <ConfigProvider
       theme={{
         components: {
-        }
+          Message: {
+            contentBg: '#151515',
+          }
+        },
+        token: {
+          colorText: '#bbbbbb',
+          colorPrimaryHover: '#bbbbbb',
+          colorPrimaryActive: '#bbbbbb',
+          colorBgContainer: '#151515',
+        },
       }}
     >
       <Provider store={store}>

@@ -89,8 +89,8 @@ const HomeContainer: React.FC = () => {
    */
   const [messageApi, contextHolder] = message.useMessage();
 
+  // 加载聊天记录 
   useEffect(() => {
-    // 加载聊天记录 
     localforage
       .getItem(CHAT_LIST_KEY)
       .then(chatData => {
@@ -101,8 +101,15 @@ const HomeContainer: React.FC = () => {
           setChatList(initialChatList);
         }
       });
+  }, []);
 
-    // 监听快捷键
+  // 监听快捷键
+  // 这里必须要依赖 chatList，否则无法拿到最新的 chatList 值
+  // 1. 如果不依赖 chatList，useEffect 中的回调函数是基于首次渲染时创建的闭包
+  // 闭包捕获的是创建时的值，后续由于无依赖项也不会再次执行 useEffect，也不会重新创建闭包
+  // 因此也不会更新 chatList 的值
+  // 2. 而外部由于每次组件渲染都会重新执行整个函数组件，因此外部能够获取最新的值
+  useEffect(() => {
     const handleKeyDown = async (event: KeyboardEvent) => {
       if (event.ctrlKey && event.key === 's') {
         event.preventDefault();
@@ -130,7 +137,7 @@ const HomeContainer: React.FC = () => {
     return (() => {
       window.removeEventListener('keydown', handleKeyDown);
     });
-  }, []);
+  }, [chatList]);
 
   /**
    * 删除一个 chat card
@@ -220,44 +227,47 @@ const HomeContainer: React.FC = () => {
   };
 
   return (
-    <div className={
-      classNames(
-        'home', 
-        {'full-screen': isFullScreen},
-      )}
-    >
-      {/* 面板区域 */}
-      <div className="home-side-bar-container">
-        <SideBarHeader />
-        <SideBarBody 
-          chatList={chatList}
-          selectedIdx={selectedIdx}
-          handleClickDelete={handleClickDelete}
-          handleClickCard={handleClickCard}
-          handleClickBody={() => handleNavigate(nav, '/')}
-        />
-        <SideBarFooter
-          handleClickSetting={() => handleNavigate(nav, '/setting')} 
-          handleClickNewChat={handleClickNewChat}
-        />
-      </div>
-      <div className="home-chat-container">
-        {/* 渲染二级路由的地方 */}
-        <Outlet
-          // 将当前选中的 chat card 进行传递
-          context={chatParam}
-        />
-      </div>
-
-      {/* 弹窗区域 */}
-      {isShowEditModal && 
-        <div className="home-chat-edit-modal-mask">
-          <div className="home-chat-edit-modal">
-
-          </div>
+    <>
+      {contextHolder}
+      <div className={
+        classNames(
+          'home', 
+          {'full-screen': isFullScreen},
+        )}
+      >
+        {/* 面板区域 */}
+        <div className="home-side-bar-container">
+          <SideBarHeader />
+          <SideBarBody 
+            chatList={chatList}
+            selectedIdx={selectedIdx}
+            handleClickDelete={handleClickDelete}
+            handleClickCard={handleClickCard}
+            handleClickBody={() => handleNavigate(nav, '/')}
+          />
+          <SideBarFooter
+            handleClickSetting={() => handleNavigate(nav, '/setting')} 
+            handleClickNewChat={handleClickNewChat}
+          />
         </div>
-      }
-    </div>
+        <div className="home-chat-container">
+          {/* 渲染二级路由的地方 */}
+          <Outlet
+            // 将当前选中的 chat card 进行传递
+            context={chatParam}
+          />
+        </div>
+
+        {/* 弹窗区域 */}
+        {isShowEditModal && 
+          <div className="home-chat-edit-modal-mask">
+            <div className="home-chat-edit-modal">
+
+            </div>
+          </div>
+        }
+      </div>
+    </>
   )
 };
 
