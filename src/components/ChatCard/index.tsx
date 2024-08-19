@@ -40,6 +40,11 @@ const ChatCard: React.FC<IChatCardProps> = ({
   
   const len = messageList?.length ?? 1;
 
+  const handleClickDeleteButton = (event: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
+    event.stopPropagation();
+    handleClickDelete && handleClickDelete(event);
+  }
+
   return (
     <div 
       className={classNames('chat-card-container', { '--selected': isSelected })}
@@ -61,7 +66,7 @@ const ChatCard: React.FC<IChatCardProps> = ({
       </div>
       <CloseCircleOutlined 
         className='chat-card-delete' 
-        onClick={handleClickDelete}
+        onClick={handleClickDeleteButton}
       />
     </div>
   );

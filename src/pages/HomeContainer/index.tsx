@@ -6,11 +6,14 @@ import SideBarHeader from "../SideBar/SideBarHeader";
 import SideBarBody from "../SideBar/SideBarBody";
 import SideBarFooter from "../SideBar/SideBarFooter";
 import { IChatCardProps, IChatMessage, Sender } from "@/components/ChatCard";
-import { uniqueId } from "lodash";
 import { IChatProps } from "../Window/Chat";
 import { ISettingProps } from "../Window/Setting";
 import classNames from "classnames";
 import _ from "lodash";
+import localforage from "localforage";
+import { CHAT_LIST_KEY } from "@/constants";
+import { message } from "antd";
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * 初始化时和清空时自动生成一条新的聊天
@@ -38,7 +41,7 @@ const createMessage = (
     content: content ?? "有什么可以帮你的吗",
     time: new Date(),
     sender: sender ?? Sender.NOT_ME,
-    fingerprint: uniqueId(),
+    fingerprint: uuidv4(),
   });
 };
 
@@ -82,6 +85,54 @@ const HomeContainer: React.FC = () => {
   const [isShowEditModal, setIsShowEditModal] = useState(false);
 
   /**
+   * antd 消息提示
+   */
+  const [messageApi, contextHolder] = message.useMessage();
+
+  useEffect(() => {
+    // 加载聊天记录 
+    localforage
+      .getItem(CHAT_LIST_KEY)
+      .then(chatData => {
+        console.log(`聊天记录加载成功 ${chatData}`);
+        if (chatData) {
+          setChatList(chatData as IChatCardProps[]);
+        } else {
+          setChatList(initialChatList);
+        }
+      });
+
+    // 监听快捷键
+    const handleKeyDown = async (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.key === 's') {
+        event.preventDefault();
+        // 保存聊天记录
+        localforage
+          .setItem(CHAT_LIST_KEY, chatList)
+          .then(() => {
+            console.log('聊天记录保存成功', chatList);
+            messageApi.open({
+              type: 'success',
+              content: '聊天记录保存成功',
+            });
+          })
+          .catch(e => {
+            console.log(`聊天记录保存失败 ${e}`);
+            messageApi.open({
+              type: 'error',
+              content: `哎呀，出错了~请稍后再试 ${e}`,
+            });
+          });
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);  
+
+    return (() => {
+      window.removeEventListener('keydown', handleKeyDown);
+    });
+  }, []);
+
+  /**
    * 删除一个 chat card
    * @param index 要删除的 item index
    */
@@ -105,22 +156,25 @@ const HomeContainer: React.FC = () => {
     }
     setChatList(newChatList);
   };
+  
+  /**
+   * 新增一个 chat card
+   * 新增的 item 加在数组 index 0 位置
+   * 自动选中新增的 item
+   */
+  const handleClickNewChat = () => {
+    // 不能用 push 或 unshift，这两个方法会直接修改原数组
+    const newChatList = [createChatCard(), ...chatList];
+    setChatList(newChatList);
+    setSelectedIdx(0);
+  };
 
   /**
    * 切换选中的 chat card
    */
   const handleClickCard = (index: number) => {
     setSelectedIdx(index);
-  };
-
-  /**
-   * 新增一个 chat card
-   * 新增的 item 加在数组 index 0 位置
-   */
-  const handleClickNewChat = () => {
-    // 不能用 push 或 unshift，这两个方法会直接修改原数组
-    const newChatList = [createChatCard(), ...chatList];
-    setChatList(newChatList);
+    console.log(chatList);
   };
 
   /**
