@@ -77,7 +77,7 @@ const getMesuredData = (index: number) => {
       offset += topMostMeasuredItem.offset + topMostMeasuredItem.height;
     }
     // 从下到上计算没有被测量的 item 的位置
-    for (let i = topMostMeasuredIndex - 1; i >= index; i--) {
+    for (let i = topMostMeasuredIndex; i >= index; i--) {
       const height = getEstimatedItemHeight();
       measuredData[i] = { height, offset };
       offset += height;
@@ -153,18 +153,13 @@ const getRenderIndex = (itemCount: number, listRealheight: number, scrolledOffse
   return [startIndex, endIndex];
 }
 
-const KVirtualList: React.FC<IKVirtualListProps> = (props: IKVirtualListProps) => {
+const KVirtualList: React.FC<IKVirtualListProps> = (
+  props: IKVirtualListProps
+) => {
 
   const {
     messages,
   } = props;
-
-  /**
-   * 列表的虚拟高度，用于撑开滚动条
-   * 
-   * 初始化为 item 数量 * item 的预估高度
-   */
-  const [listVirtualHeight, setListVirtualHeight] = useState(messages.length * getEstimatedItemHeight());
 
   /**
    * 列表的真实高度
@@ -172,6 +167,13 @@ const KVirtualList: React.FC<IKVirtualListProps> = (props: IKVirtualListProps) =
    * flex：1，撑满父容器的剩余空间
    */
   const [listRealHeight, setListRealHeight] = useState(500);
+
+  /**
+   * 列表的虚拟高度，用于撑开滚动条
+   * 
+   * 初始化为 item 数量 * item 的预估高度
+   */
+  const [listVirtualHeight, setListVirtualHeight] = useState(Math.max(messages.length * getEstimatedItemHeight(), listRealHeight));
 
   /**
    * 聊天记录需从底部开始滑动
@@ -199,6 +201,7 @@ const KVirtualList: React.FC<IKVirtualListProps> = (props: IKVirtualListProps) =
       const { height } = entries[0].contentRect;
       console.log(`kennen virtual list 高度变化：${listRealHeight} -> ${height}`);
       setListRealHeight(height);
+      setListVirtualHeight(Math.max(listVirtualHeight, height));
     });
   
     if (virtualListRef.current) {  
@@ -236,12 +239,13 @@ const KVirtualList: React.FC<IKVirtualListProps> = (props: IKVirtualListProps) =
    * @returns 需要渲染的 item 的列表
    */
   const getRenderMessageList = () => {
+    console.log(`kennen listRealHeight ${listRealHeight} scrolledOffset ${scrolledOffset}`);
     const [startIndex, endIndex] = getRenderIndex(
       messages.length,
       listRealHeight,
       scrolledOffset,
     );
-    console.log(`kennen start: ${startIndex}, end: ${endIndex}`);
+    console.log(`kennen render list => start: ${startIndex}, end: ${endIndex}`);
     const messageList = [];
     for (let i = startIndex; i <= endIndex; i++) {
       const bottom = getMesuredData(i).offset;

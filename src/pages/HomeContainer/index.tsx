@@ -95,6 +95,7 @@ const HomeContainer: React.FC = () => {
       .getItem(CHAT_LIST_KEY)
       .then(chatData => {
         if (chatData) {
+          console.log(`聊天记录加载成功 ${chatData}`);
           setChatList(chatData as IChatCardProps[]);
         } else {
           setChatList(initialChatList);
