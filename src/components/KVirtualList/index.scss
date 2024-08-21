@@ -1,4 +1,27 @@
 .v-list-container {
-  position: relative;
+  flex: 1;
+  overflow-x: hidden;
+  // 使得超出高度时可以滚动
+  background-color: red;
   overflow: auto;
+  padding: 20px 20px 40px;
+  position: relative;
+  overscroll-behavior: none;
+
+  &::-webkit-scrollbar {
+      width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+      background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+      background: #404040;
+      border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+      background: #404040;
+  }
 }

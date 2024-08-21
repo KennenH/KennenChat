@@ -94,7 +94,6 @@ const HomeContainer: React.FC = () => {
     localforage
       .getItem(CHAT_LIST_KEY)
       .then(chatData => {
-        console.log(`聊天记录加载成功 ${chatData}`);
         if (chatData) {
           setChatList(chatData as IChatCardProps[]);
         } else {

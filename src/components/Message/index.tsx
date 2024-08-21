@@ -37,6 +37,7 @@ const Message: React.FC<IMessageProps> = (
   useEffect(() => {
     const handleResize = () => {
       if (ref.current) {
+        console.log(`kennen message 高度变化 ${ref.current.offsetHeight}`);
         onSizeChanged && onSizeChanged(ref.current.offsetHeight);
       }
     }

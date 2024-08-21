@@ -5,6 +5,7 @@ import { IChatCardProps } from '@/components/ChatCard';
 import Message from '@/components/Message';
 import InputPanel from '@/components/InputPanel';
 import { useLayoutEffect, useRef, useState } from 'react';
+import KVirtualList from '@/components/KVirtualList';
 
 export interface IChatProps {
   chatCardProps: IChatCardProps,
@@ -84,11 +85,14 @@ const Chat: React.FC = () => {
         titleConfig={titleConfig}
         actionConfigs={actionConfigs}
       />
-      <div 
+      <KVirtualList
+        messages={chatCardProps.messageList}
+      />
+      {/* <div 
         ref={messageListRef}
         className='chat-body'>
         {messageData}
-      </div>
+      </div> */}
       <InputPanel
         handleClickSendMessage={handleClickSendMessage}
         onTextAreaFocused={() => scrollToBottom(messageListRef.current)}
