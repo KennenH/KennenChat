@@ -2,7 +2,7 @@ import { MouseEventHandler } from 'react';
 import './index.scss';
 import ChatCard, { IChatCardProps, Sender } from '@/components/ChatCard';
 interface ISideBarBodyProps {
-  chatList: IChatCardProps[],
+  chatList?: IChatCardProps[] | null,
   selectedIdx: number,
   handleClickDelete: Function,
   handleClickCard: Function,
@@ -21,7 +21,7 @@ const SideBarBody: React.FC<ISideBarBodyProps> = (
     handleClickBody,
   } = props;
 
-  const list = chatList.map((card, idx) => {
+  const list = chatList?.map((card, idx) => {
     return (
       <ChatCard
         key={card.messageList[0].fingerprint}

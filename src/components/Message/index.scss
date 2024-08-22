@@ -1,6 +1,10 @@
 .message-wrapper-container {
   display: flex;
   flex-direction: row;
+  width: 100%;
+  padding-left: 20px;
+  padding-right: 0px;
+  box-sizing: border-box;
 
   &:last-child {
     animation: message-slide-in .3s ease;
@@ -8,6 +12,8 @@
 
   &.--me {
     flex-direction: row-reverse;
+    padding-left: 0px;
+    padding-right: 20px;
   }
 }
 

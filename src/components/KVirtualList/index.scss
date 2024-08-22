@@ -2,11 +2,10 @@
   flex: 1;
   overflow-x: hidden;
   // 使得超出高度时可以滚动
-  background-color: red;
   overflow: auto;
-  padding: 20px 20px 40px;
   position: relative;
   overscroll-behavior: none;
+//   box-sizing: border-box; // 绝对定位时无效
 
   &::-webkit-scrollbar {
       width: 8px;

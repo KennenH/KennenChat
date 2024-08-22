@@ -12,10 +12,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import './index.scss';
 import { IChatMessage } from '../ChatCard';
 import Message from '../Message';
-import _ from 'lodash';
+import _, { throttle } from 'lodash';
 
 interface IKVirtualListProps {
-  messages: IChatMessage[],
+  messages?: IChatMessage[] | null,
 }
 
 /**
@@ -67,24 +67,22 @@ const measuredDataInfo: MeasuredDataInfo = {
  * @returns 对应下标的子 item 的测量数据 {@link MeasuredItem}
  */
 const getMesuredData = (index: number) => {
-  const { measuredData, topMostMeasuredIndex } = measuredDataInfo;
-  console.log(`kennen topMostMeasuredIndex ${topMostMeasuredIndex}`);
-  if (index <= topMostMeasuredIndex) {
+  const { measuredData } = measuredDataInfo;
+  let { topMostMeasuredIndex } = measuredDataInfo;
+  if (index < topMostMeasuredIndex) {
     let offset = 0;
     const topMostMeasuredItem = measuredData?.[topMostMeasuredIndex];
-    console.log(`kennen topMostMeasuredItem ${topMostMeasuredItem}`);
     if (topMostMeasuredItem) {
       offset += topMostMeasuredItem.offset + topMostMeasuredItem.height;
     }
     // 从下到上计算没有被测量的 item 的位置
-    for (let i = topMostMeasuredIndex; i >= index; i--) {
+    for (let i = topMostMeasuredIndex - 1; i >= index; i--) {
       const height = getEstimatedItemHeight();
       measuredData[i] = { height, offset };
       offset += height;
     }
     measuredDataInfo.topMostMeasuredIndex = index;
   }
-  console.log(`kennen index ${index}`);
   return measuredData[index];
 }
 
@@ -103,10 +101,10 @@ const getStartIndex = (listRealheight: number, endIndex: number) => {
   let offset = bottomMostItem.offset + bottomMostItem.height;
   let startIndex = endIndex;
   while (
-    offset >= maxVisibleOffset 
-    && startIndex >= 0
+    offset <= maxVisibleOffset 
+    && startIndex > 0
   ) {
-    startIndex++;
+    startIndex--;
     offset += getMesuredData(startIndex).height;
   }
   return startIndex;
@@ -120,10 +118,9 @@ const getStartIndex = (listRealheight: number, endIndex: number) => {
  * @returns 当前窗口中最后一条要渲染的聊天记录，即最底下的一条
  */
 const getEndIndex = (itemCount: number, scrolledOffset: number) => {
-  console.log(`kennen getEndIndex ${itemCount - 1}`);
   // 如果为初始化的 index，那么 end index 就是最后一条消息
   if (measuredDataInfo.topMostMeasuredIndex === -1) {
-    measuredDataInfo.topMostMeasuredIndex = itemCount - 1;
+    measuredDataInfo.topMostMeasuredIndex = itemCount;
     return itemCount - 1;
   } else {
     for (let i = itemCount - 1; ; i--) {
@@ -173,7 +170,7 @@ const KVirtualList: React.FC<IKVirtualListProps> = (
    * 
    * 初始化为 item 数量 * item 的预估高度
    */
-  const [listVirtualHeight, setListVirtualHeight] = useState(Math.max(messages.length * getEstimatedItemHeight(), listRealHeight));
+  const [listVirtualHeight, setListVirtualHeight] = useState(Math.max(messages?.length ?? 0 * getEstimatedItemHeight(), listRealHeight));
 
   /**
    * 聊天记录需从底部开始滑动
@@ -195,15 +192,15 @@ const KVirtualList: React.FC<IKVirtualListProps> = (
    * 监听虚拟列表自身真实高度
    */
   useEffect(() => {
-
-
-    const resizeObserver = new ResizeObserver(entries => {  
+    const throttledResizeCallback = throttle(entries => {
       const { height } = entries[0].contentRect;
       console.log(`kennen virtual list 高度变化：${listRealHeight} -> ${height}`);
       setListRealHeight(height);
       setListVirtualHeight(Math.max(listVirtualHeight, height));
-    });
-  
+    }, 1000, { leading: false, trailing: true });
+
+    const resizeObserver = new ResizeObserver(throttledResizeCallback);
+
     if (virtualListRef.current) {  
       resizeObserver.observe(virtualListRef.current);  
     }  
@@ -221,6 +218,9 @@ const KVirtualList: React.FC<IKVirtualListProps> = (
    * 2. 将从 index 开始到最底部（最新）消息的偏移进行更正
    */
   const onChildSizeChanged = (index: number, offsetHeight: number) => {
+    if (!messages) {
+      return;
+    }
     const { measuredData, topMostMeasuredIndex } = measuredDataInfo;
     measuredData[index].height = offsetHeight;
     
@@ -239,17 +239,18 @@ const KVirtualList: React.FC<IKVirtualListProps> = (
    * @returns 需要渲染的 item 的列表
    */
   const getRenderMessageList = () => {
-    console.log(`kennen listRealHeight ${listRealHeight} scrolledOffset ${scrolledOffset}`);
+    if (!messages) {
+      return;
+    }
     const [startIndex, endIndex] = getRenderIndex(
       messages.length,
       listRealHeight,
       scrolledOffset,
     );
-    console.log(`kennen render list => start: ${startIndex}, end: ${endIndex}`);
+    console.log(`kennen ${startIndex}-${endIndex}`);
     const messageList = [];
     for (let i = startIndex; i <= endIndex; i++) {
       const bottom = getMesuredData(i).offset;
-      console.log(`kennen index ${i} offset: ${bottom}`);
       const itemStyles = {
         position: 'absolute',
         bottom: bottom,
@@ -268,13 +269,14 @@ const KVirtualList: React.FC<IKVirtualListProps> = (
 
   const throttledScroll = _.throttle((event: React.UIEvent<HTMLDivElement, UIEvent>) => 
     setScrolledOffset(listVirtualHeight - event.currentTarget.scrollTop - listRealHeight),
-    100
+    1000
   );
 
   return (
     <div 
       className='v-list-container'
       onScroll={throttledScroll}
+      style={{height: listVirtualHeight}}
     >
       {getRenderMessageList()}
     </div>

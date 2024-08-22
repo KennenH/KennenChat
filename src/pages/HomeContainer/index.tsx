@@ -72,7 +72,7 @@ const HomeContainer: React.FC = () => {
    * chat card 列表
    * 每个 card 中存放了该聊天的所有对话记录
    */
-  const [chatList, setChatList] = useState(initialChatList);
+  const [chatList, setChatList] = useState<IChatCardProps[] | null>(null);
 
   /**
    * 是否为全屏模式
@@ -95,7 +95,7 @@ const HomeContainer: React.FC = () => {
       .getItem(CHAT_LIST_KEY)
       .then(chatData => {
         if (chatData) {
-          console.log(`聊天记录加载成功 ${chatData}`);
+          console.log('聊天记录加载成功', chatData);
           setChatList(chatData as IChatCardProps[]);
         } else {
           setChatList(initialChatList);
@@ -144,6 +144,9 @@ const HomeContainer: React.FC = () => {
    * @param index 要删除的 item index
    */
   const handleClickDelete = (index: number) => {
+    if (!chatList) {
+      return;
+    }
     let newChatList: IChatCardProps[];
     if (chatList.length <= 1) {
       newChatList = [createChatCard()];
@@ -170,6 +173,10 @@ const HomeContainer: React.FC = () => {
    * 自动选中新增的 item
    */
   const handleClickNewChat = () => {
+    if (!chatList) {
+      setChatList([createChatCard()]);
+      return;
+    }
     // 不能用 push 或 unshift，这两个方法会直接修改原数组
     const newChatList = [createChatCard(), ...chatList];
     setChatList(newChatList);
@@ -202,7 +209,7 @@ const HomeContainer: React.FC = () => {
    * 输入区域点击发送按钮
    */
   const handleClickSendMessage = (message: string) => {
-    const newChatList = _.cloneDeep(chatList);
+    const newChatList = chatList ? _.cloneDeep(chatList) : [createChatCard()];
     newChatList[selectedIdx]
       .messageList
       .push(createMessage(message, Sender.ME));
@@ -213,7 +220,7 @@ const HomeContainer: React.FC = () => {
    * 二级路由 chat 参数
    */
   const chatParam: IChatProps = {
-    chatCardProps: chatList[selectedIdx],
+    chatCardProps: chatList?.[selectedIdx],
     isFullScreen: isFullScreen,
     handleToggleFullScreen: handleToggleFullScreen,
     handleClickEdit: handleClickEdit,

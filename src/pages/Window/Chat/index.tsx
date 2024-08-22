@@ -8,7 +8,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import KVirtualList from '@/components/KVirtualList';
 
 export interface IChatProps {
-  chatCardProps: IChatCardProps,
+  chatCardProps?: IChatCardProps,
   isFullScreen: boolean,
   handleToggleFullScreen: Function,
   handleClickEdit: Function,
@@ -47,11 +47,11 @@ const Chat: React.FC = () => {
   // 当消息列表变化时滚动至底部
   useLayoutEffect(() => {
     scrollToBottom(messageListRef.current);
-  }, [chatCardProps.messageList]);
+  }, [chatCardProps?.messageList]);
 
   const titleConfig: WindowHeaderTitleConfig = { 
-    primaryTitle: chatCardProps.title,
-    secondaryTitle: `共 ${chatCardProps.messageList.length - 1} 条对话`,
+    primaryTitle: chatCardProps?.title ?? '新的聊天',
+    secondaryTitle: `共 ${chatCardProps?.messageList.length ?? 1 - 1} 条对话`,
     isPrimaryTitleClickable: true,
     handleClickPrimaryTitle: handleClickEdit,
   };
@@ -67,17 +67,17 @@ const Chat: React.FC = () => {
     },
   ];
 
-  const messageData = 
-    chatCardProps
-      .messageList
-      .map(msg => {
-    return (
-      <Message
-        key={msg.fingerprint}
-        message={msg}
-      />
-    );
-  });
+  // const messageData = 
+  //   chatCardProps
+  //     .messageList
+  //     .map(msg => {
+  //   return (
+  //     <Message
+  //       key={msg.fingerprint}
+  //       message={msg}
+  //     />
+  //   );
+  // });
 
   return (
     <>
@@ -86,7 +86,7 @@ const Chat: React.FC = () => {
         actionConfigs={actionConfigs}
       />
       <KVirtualList
-        messages={chatCardProps.messageList}
+        messages={chatCardProps?.messageList}
       />
       {/* <div 
         ref={messageListRef}
