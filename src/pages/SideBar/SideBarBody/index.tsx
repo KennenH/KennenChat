@@ -24,7 +24,8 @@ const SideBarBody: React.FC<ISideBarBodyProps> = (
   const list = chatList?.map((card, idx) => {
     return (
       <ChatCard
-        key={card.messageList[0].fingerprint}
+        key={card.id}
+        id={card.id}
         title={card.title}
         isSelected={selectedIdx === idx}
         messageList={card.messageList}

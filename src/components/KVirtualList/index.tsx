@@ -13,9 +13,9 @@ import './index.scss';
 import { IChatMessage } from '../ChatCard';
 import Message from '../Message';
 import _, { findLastKey, throttle } from 'lodash';
-import { CHAT_LIST_BOTTOM_OFFSET } from '@/constants';
 
 interface IKVirtualListProps {
+  chatCardId?: string,
   messages?: IChatMessage[] | null,
 }
 
@@ -31,7 +31,15 @@ interface MeasuredItem {
 }
 
 /**
- * 已经测量的子 item 的缓存数据
+ * 所有聊天已经测量的子 item 的缓存数据
+ * id：对应的 chat id
+ */
+interface MeasuredDataInfos {
+  [id: string]: MeasuredDataInfo,
+}
+
+/**
+ * 当前聊天已测量的子 item 缓存数据
  */
 interface MeasuredDataInfo {
   /**
@@ -55,10 +63,26 @@ const getEstimatedItemHeight = () => {
 /**
  * 已经计算好的子 item 的信息
  */
-const measuredDataInfo: MeasuredDataInfo = {
-  measuredData: {},
-  topMostMeasuredIndex: -1,
-};
+const measuredDataInfos: MeasuredDataInfos = {};
+// {
+//   measuredData: {},
+//   topMostMeasuredIndex: -1,
+// };
+
+/**
+ * 使用 proxy 拦截获取，当为 undefined 时进行初始化
+ */
+const useMeasuredDataInfo = new Proxy(measuredDataInfos, {
+  get(target: MeasuredDataInfos, prop: string) {
+    if (!target[prop]) {
+      target[prop] = {
+        measuredData: {},
+        topMostMeasuredIndex: -1,
+      };
+    }
+    return target[prop];
+  }
+});
 
 /**
  * 获取对应下标的 item 高度和偏移
@@ -67,7 +91,7 @@ const measuredDataInfo: MeasuredDataInfo = {
  * 
  * @returns 对应下标的子 item 的测量数据 {@link MeasuredItem}
  */
-const getMesuredData = (index: number) => {
+const getMesuredData = (index: number, measuredDataInfo: MeasuredDataInfo) => {
   const { measuredData } = measuredDataInfo;
   let { topMostMeasuredIndex } = measuredDataInfo;
   if (index < topMostMeasuredIndex) {
@@ -96,8 +120,8 @@ const getMesuredData = (index: number) => {
  * 
  * @returns 第一条要渲染的记录，即最上面一条聊天记录
  */
-const getStartIndex = (listRealheight: number, endIndex: number) => {
-  const bottomMostItem = getMesuredData(endIndex);
+const getStartIndex = (listRealheight: number, endIndex: number, measuredDataInfo: MeasuredDataInfo) => {
+  const bottomMostItem = getMesuredData(endIndex, measuredDataInfo);
   const maxVisibleOffset = bottomMostItem.offset + listRealheight;
   let offset = bottomMostItem.offset + bottomMostItem.height;
   let startIndex = endIndex;
@@ -106,7 +130,7 @@ const getStartIndex = (listRealheight: number, endIndex: number) => {
     && startIndex > 0
   ) {
     startIndex--;
-    offset += getMesuredData(startIndex).height;
+    offset += getMesuredData(startIndex, measuredDataInfo).height;
   }
   return startIndex;
 }
@@ -118,14 +142,14 @@ const getStartIndex = (listRealheight: number, endIndex: number) => {
  * 
  * @returns 当前窗口中最后一条要渲染的聊天记录，即最底下的一条
  */
-const getEndIndex = (itemCount: number, scrolledOffset: number) => {
+const getEndIndex = (itemCount: number, scrolledOffset: number, measuredDataInfo: MeasuredDataInfo) => {
   // 如果为初始化的 index，那么 end index 就是最后一条消息
   if (measuredDataInfo.topMostMeasuredIndex === -1) {
     measuredDataInfo.topMostMeasuredIndex = itemCount;
     return itemCount - 1;
   } else {
     for (let i = itemCount - 1; ; i--) {
-      const offset = getMesuredData(i).offset;
+      const offset = getMesuredData(i, measuredDataInfo).offset;
       if (offset >= scrolledOffset) {
         return i;
       }
@@ -145,9 +169,9 @@ const getEndIndex = (itemCount: number, scrolledOffset: number) => {
  * 
  * @returns 当前滚动窗口下实际需要渲染的子 item 的开始和结束下标
  */
-const getRenderIndex = (itemCount: number, listRealheight: number, scrolledOffset: number) => {
-  const endIndex = getEndIndex(itemCount, scrolledOffset);
-  const startIndex = getStartIndex(listRealheight, endIndex);
+const getRenderIndex = (itemCount: number, listRealheight: number, scrolledOffset: number, measuredDataInfo: MeasuredDataInfo) => {
+  const endIndex = getEndIndex(itemCount, scrolledOffset, measuredDataInfo);
+  const startIndex = getStartIndex(listRealheight, endIndex, measuredDataInfo);
   return [startIndex, Math.min(itemCount - 1, endIndex + 2)];
 }
 
@@ -156,6 +180,7 @@ const KVirtualList: React.FC<IKVirtualListProps> = (
 ) => {
 
   const {
+    chatCardId,
     messages,
   } = props;
 
@@ -183,6 +208,13 @@ const KVirtualList: React.FC<IKVirtualListProps> = (
    * 最外层 div 的引用
    */
   const virtualListRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * 记录当前聊天的聊天 id
+   * 
+   * 当聊天 id 不一致时切换 measuredData
+   */
+  const [chatId, setCharId] = useState(chatCardId);
 
   const [, setNotifyUpdate] = useState({});
 
@@ -226,7 +258,7 @@ const KVirtualList: React.FC<IKVirtualListProps> = (
    * 2. 更新下标为 index 的 item 的高度
    * 3. 将从 index 开始到最底部（最新）消息的偏移进行更正
    */
-  const onChildSizeChanged = (index: number, offsetHeight: number) => {
+  const onChildSizeChanged = (index: number, offsetHeight: number, measuredDataInfo: MeasuredDataInfo) => {
     if (!messages) {
       return;
     }
@@ -242,7 +274,7 @@ const KVirtualList: React.FC<IKVirtualListProps> = (
       setListVirtualHeight(height + offset);
     } else {
       // 每渲染一个子 item 都更新虚拟高度
-      console.log(`kennen 虚拟列表更新 ${listVirtualHeight} => ${listVirtualHeight - measuredData[index].height + offsetHeight}`);
+      // console.log(`kennen 虚拟列表更新 ${listVirtualHeight} => ${listVirtualHeight - measuredData[index].height + offsetHeight}`);
       setListVirtualHeight(listVirtualHeight => listVirtualHeight - measuredData[index].height + offsetHeight);
     }
     // 更新下标为 index 的 item 的高度    
@@ -262,18 +294,20 @@ const KVirtualList: React.FC<IKVirtualListProps> = (
    * @returns 需要渲染的 item 的列表
    */
   const getRenderMessageList = () => {
-    if (!messages) {
+    if (!messages || !chatCardId) {
       return;
     }
+    const measuredDataInfo = useMeasuredDataInfo[chatCardId];
     const [startIndex, endIndex] = getRenderIndex(
       messages.length,
       listRealHeight,
       scrolledOffset,
+      measuredDataInfo,
     );
     // console.log(`kennen ${startIndex}-${endIndex}`);
     const messageList = [];
     for (let i = startIndex; i <= endIndex; i++) {
-      const bottom = getMesuredData(i).offset;
+      const bottom = getMesuredData(i, measuredDataInfo).offset;
       const itemStyles = {
         position: 'absolute',
         bottom: bottom,
@@ -282,7 +316,7 @@ const KVirtualList: React.FC<IKVirtualListProps> = (
         <Message 
           key={messages[i].fingerprint}
           message={messages[i]}
-          onSizeChanged={offsetHeight => onChildSizeChanged(i, offsetHeight)}
+          onSizeChanged={offsetHeight => onChildSizeChanged(i, offsetHeight, measuredDataInfo)}
           styles={itemStyles}
         />
       );

@@ -1,6 +1,7 @@
 import { Button } from 'antd';
 import './index.scss';
 import { useState } from 'react';
+import exeCmd from './utils';
 
 interface IInputPanelProps {
   handleClickSendMessage: Function,
@@ -30,10 +31,20 @@ const InputPanel: React.FC<IInputPanelProps> = (props: IInputPanelProps) => {
    * 执行发送
    */
   const sendMessage = () => {
-    // 交给外部处理文本输入内容
-    handleClickSendMessage(inputText);
+    if (inputText.length === 0) {
+      return;
+    }
+
+    // 执行命令
+    const executed = exeCmd(inputText);
+    
     // 清空文本
     setInputText('');
+
+    if (!executed) {
+      // 交给外部处理文本输入内容
+      handleClickSendMessage(inputText);
+    }
   }
 
   /**

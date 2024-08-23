@@ -18,6 +18,10 @@ export interface IChatMessage {
 }
 
 export interface IChatCardProps {
+  /**
+   * 唯一标识一个 chatCard 的 id
+   */
+  id: string,
   title: string,
   messageList: IChatMessage[],
 
@@ -29,8 +33,9 @@ export interface IChatCardProps {
 }
 
 const ChatCard: React.FC<IChatCardProps> = ({
+  id,
   title,
-  messageList: messageList,
+  messageList,
 
   isSelected,
   isDragging,

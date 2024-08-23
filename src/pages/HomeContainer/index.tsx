@@ -23,6 +23,7 @@ import { v4 as uuidv4 } from 'uuid';
  */
 const createChatCard = (): IChatCardProps => {
   return ({
+    id: uuidv4(),
     title: '新的聊天',
     messageList: [createMessage()],
   });

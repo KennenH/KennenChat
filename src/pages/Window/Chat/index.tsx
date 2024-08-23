@@ -6,6 +6,8 @@ import Message from '@/components/Message';
 import InputPanel from '@/components/InputPanel';
 import { useLayoutEffect, useRef, useState } from 'react';
 import KVirtualList from '@/components/KVirtualList';
+import globalStore from '@/store/globalStore';
+import { inject, observer } from 'mobx-react';
 
 export interface IChatProps {
   chatCardProps?: IChatCardProps,
@@ -67,17 +69,18 @@ const Chat: React.FC = () => {
     },
   ];
 
-  // const messageData = 
-  //   chatCardProps
-  //     ?.messageList
-  //     .map(msg => {
-  //   return (
-  //     <Message
-  //       key={msg.fingerprint}
-  //       message={msg}
-  //     />
-  //   );
-  // });
+  const messageData = globalStore.isUseVirtualList ?
+    null : 
+    chatCardProps
+      ?.messageList
+      .map(msg => {
+        return (
+          <Message
+            key={msg.fingerprint}
+            message={msg}
+          />
+        );
+      });
 
   return (
     <>
@@ -85,14 +88,22 @@ const Chat: React.FC = () => {
         titleConfig={titleConfig}
         actionConfigs={actionConfigs}
       />
-      <KVirtualList
-        messages={chatCardProps?.messageList}
-      />
-      {/* <div 
-        ref={messageListRef}
-        className='chat-body'>
-        {messageData}
-      </div> */}
+      {
+        globalStore.isUseVirtualList ?
+        (
+          <KVirtualList
+            chatCardId={chatCardProps?.id}
+            messages={chatCardProps?.messageList}
+          />
+        ) :
+        (
+          <div 
+            ref={messageListRef}
+            className='chat-body'>
+            {messageData}
+          </div>
+        )
+      }
       <InputPanel
         handleClickSendMessage={handleClickSendMessage}
         onTextAreaFocused={() => scrollToBottom(messageListRef.current)}
@@ -101,4 +112,4 @@ const Chat: React.FC = () => {
   );
 };
 
-export default Chat;
+export default inject("globalStore")(observer(Chat));
