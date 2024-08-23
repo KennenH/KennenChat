@@ -51,7 +51,7 @@ const Chat: React.FC = () => {
 
   const titleConfig: WindowHeaderTitleConfig = { 
     primaryTitle: chatCardProps?.title ?? '新的聊天',
-    secondaryTitle: `共 ${chatCardProps?.messageList.length ?? 1 - 1} 条对话`,
+    secondaryTitle: `共 ${(chatCardProps?.messageList.length ?? 1) - 1} 条对话`,
     isPrimaryTitleClickable: true,
     handleClickPrimaryTitle: handleClickEdit,
   };
