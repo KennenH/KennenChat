@@ -12,7 +12,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import './index.scss';
 import { IChatMessage } from '../ChatCard';
 import Message from '../Message';
-import _, { throttle } from 'lodash';
+import _, { findLastKey, throttle } from 'lodash';
 
 interface IKVirtualListProps {
   messages?: IChatMessage[] | null,
@@ -170,7 +170,7 @@ const KVirtualList: React.FC<IKVirtualListProps> = (
    * 
    * 初始化为 item 数量 * item 的预估高度
    */
-  const [listVirtualHeight, setListVirtualHeight] = useState(Math.max(messages?.length ?? 0 * getEstimatedItemHeight(), listRealHeight));
+  const [listVirtualHeight, setListVirtualHeight] = useState(listRealHeight);
 
   /**
    * 聊天记录需从底部开始滑动
@@ -189,14 +189,26 @@ const KVirtualList: React.FC<IKVirtualListProps> = (
   const virtualListRef = useRef(null);
 
   /**
+   * 聊天记录更新时重新估算虚拟列表的虚拟高度
+   */
+  useEffect(() => {
+    const newListVirtualHeight = (messages?.length ?? 0) * getEstimatedItemHeight();
+    console.log(`kennen 虚拟列表更新 ${listVirtualHeight} => ${Math.max(newListVirtualHeight, listRealHeight)}`);
+    setListVirtualHeight(Math.max(newListVirtualHeight, listRealHeight));
+  }, [messages]);
+
+  /**
    * 监听虚拟列表自身真实高度
    */
   useEffect(() => {
     const throttledResizeCallback = throttle(entries => {
       const { height } = entries[0].contentRect;
-      console.log(`kennen virtual list 高度变化：${listRealHeight} -> ${height}`);
       setListRealHeight(height);
-      setListVirtualHeight(Math.max(listVirtualHeight, height));
+      // 只有在聊天记录加载之后的虚拟列表更新才能执行
+      // 否则会覆盖上面的副作用执行
+      // if (messages) {
+      //   setListVirtualHeight(Math.max(listVirtualHeight, height));
+      // }
     }, 1000, { leading: false, trailing: true });
 
     const resizeObserver = new ResizeObserver(throttledResizeCallback);
@@ -216,21 +228,26 @@ const KVirtualList: React.FC<IKVirtualListProps> = (
    * 消息记录的高度由于渲染发生了改变
    * 1. 更新下标为 index 的 item 的高度
    * 2. 将从 index 开始到最底部（最新）消息的偏移进行更正
+   * 3. 更新虚拟列表的虚拟高度
    */
   const onChildSizeChanged = (index: number, offsetHeight: number) => {
     if (!messages) {
       return;
     }
     const { measuredData, topMostMeasuredIndex } = measuredDataInfo;
+    // 更新虚拟列表虚拟高度
+    const newListVirtualHeight = listVirtualHeight - measuredData[index].height + offsetHeight;
+    console.log(`kennen 虚拟列表更新 ${listVirtualHeight} => ${newListVirtualHeight}`);
+    setListVirtualHeight(newListVirtualHeight);
+    // 更新下标为 index 的 item 的高度    
     measuredData[index].height = offsetHeight;
-    
+    // 更新从 topMostMeasuredIndex 开始到最新消息的偏移
     let offset = 0;
     for (let i = messages.length - 1; i >= topMostMeasuredIndex; i--) {
       const itemData = measuredData[i];
       itemData.offset = offset;
       offset += itemData.height;
     }
-    setNotifyUpdate({});
   }
 
   /**
@@ -242,6 +259,7 @@ const KVirtualList: React.FC<IKVirtualListProps> = (
     if (!messages) {
       return;
     }
+    console.log('kennen getting messages');
     const [startIndex, endIndex] = getRenderIndex(
       messages.length,
       listRealHeight,
@@ -267,18 +285,23 @@ const KVirtualList: React.FC<IKVirtualListProps> = (
     return messageList;
   }
 
-  const throttledScroll = _.throttle((event: React.UIEvent<HTMLDivElement, UIEvent>) => 
-    setScrolledOffset(listVirtualHeight - event.currentTarget.scrollTop - listRealHeight),
-    1000
+  const throttledScroll = throttle((event: React.UIEvent<HTMLDivElement, UIEvent>) => {
+    console.log('kennen scroll!!!');
+      setScrolledOffset(listVirtualHeight - event.currentTarget.scrollTop - listRealHeight);
+    }, 1000, { leading: true, trailing: false }
   );
 
   return (
     <div 
       className='v-list-container'
       onScroll={throttledScroll}
-      style={{height: listVirtualHeight}}
     >
-      {getRenderMessageList()}
+      <div
+        className='v-list-inner-container'
+        style={{ height: listVirtualHeight }}
+      >
+        {getRenderMessageList()}
+      </div>
     </div>
   );
 };

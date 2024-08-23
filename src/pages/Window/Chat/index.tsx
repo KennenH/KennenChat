@@ -69,7 +69,7 @@ const Chat: React.FC = () => {
 
   // const messageData = 
   //   chatCardProps
-  //     .messageList
+  //     ?.messageList
   //     .map(msg => {
   //   return (
   //     <Message
