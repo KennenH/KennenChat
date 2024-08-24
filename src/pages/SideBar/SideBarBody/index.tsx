@@ -4,9 +4,9 @@ import ChatCard, { IChatCardProps, Sender } from '@/components/ChatCard';
 interface ISideBarBodyProps {
   chatList?: IChatCardProps[] | null,
   selectedIdx: number,
-  handleClickDelete: Function,
-  handleClickCard: Function,
-  handleClickBody: Function,
+  handleClickDelete: (index: number) => void,
+  handleClickCard: (index: number) => void,
+  handleClickBody: () => void,
 }
 
 const SideBarBody: React.FC<ISideBarBodyProps> = (

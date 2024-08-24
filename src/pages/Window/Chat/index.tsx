@@ -44,11 +44,12 @@ const Chat: React.FC = () => {
     handleClickSendMessage,
   } = useOutletContext() as IChatProps;
 
-  const messageListRef = useRef<HTMLDivElement>(null);
+  // 非虚拟列表引用
+  const noneVirtualMessageListRef = useRef<HTMLDivElement>(null);
 
-  // 当消息列表变化时滚动至底部
+  // 当非虚拟列表消息变化时滚动至底部
   useLayoutEffect(() => {
-    scrollToBottom(messageListRef.current);
+    scrollToBottom(noneVirtualMessageListRef.current);
   }, [chatCardProps?.messageList]);
 
   const titleConfig: WindowHeaderTitleConfig = { 
@@ -89,7 +90,7 @@ const Chat: React.FC = () => {
         actionConfigs={actionConfigs}
       />
       {
-        globalStore.isUseVirtualList ?
+        globalStore.isUseVirtualList && chatCardProps ?
         (
           <KVirtualList
             chatCardId={chatCardProps?.id}
@@ -98,7 +99,7 @@ const Chat: React.FC = () => {
         ) :
         (
           <div 
-            ref={messageListRef}
+            ref={noneVirtualMessageListRef}
             className='chat-body'>
             {messageData}
           </div>
@@ -106,7 +107,7 @@ const Chat: React.FC = () => {
       }
       <InputPanel
         handleClickSendMessage={handleClickSendMessage}
-        onTextAreaFocused={() => scrollToBottom(messageListRef.current)}
+        onTextAreaFocused={() => scrollToBottom(noneVirtualMessageListRef.current)}
       />
     </>
   );

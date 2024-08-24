@@ -73,7 +73,7 @@ const HomeContainer: React.FC = () => {
    * chat card 列表
    * 每个 card 中存放了该聊天的所有对话记录
    */
-  const [chatList, setChatList] = useState<IChatCardProps[] | null>(null);
+  const [chatList, setChatList] = useState<IChatCardProps[]>([]);
 
   /**
    * 是否为全屏模式
@@ -189,7 +189,6 @@ const HomeContainer: React.FC = () => {
    */
   const handleClickCard = (index: number) => {
     setSelectedIdx(index);
-    console.log(chatList);
   };
 
   /**
@@ -215,13 +214,14 @@ const HomeContainer: React.FC = () => {
       .messageList
       .push(createMessage(message, Sender.ME));
     setChatList(newChatList);
+    console.log('kennen', _.isEqual(chatList[selectedIdx].messageList, newChatList[selectedIdx].messageList));
   };
 
   /**
    * 二级路由 chat 参数
    */
   const chatParam: IChatProps = {
-    chatCardProps: chatList?.[selectedIdx],
+    chatCardProps: chatList[selectedIdx],
     isFullScreen: isFullScreen,
     handleToggleFullScreen: handleToggleFullScreen,
     handleClickEdit: handleClickEdit,
