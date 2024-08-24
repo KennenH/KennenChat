@@ -1,4 +1,4 @@
-import { MouseEventHandler } from 'react';
+import { MouseEventHandler, useEffect } from 'react';
 import './index.scss';
 import ChatCard, { IChatCardProps, Sender } from '@/components/ChatCard';
 interface ISideBarBodyProps {

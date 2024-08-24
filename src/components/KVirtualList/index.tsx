@@ -8,16 +8,17 @@
  *    
  *    -> 列表在往上滚动的过程中计算沿途的子 item 的 bottom 和高度，并作为后续子 item 的位置计算的基础
  */
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './index.scss';
-import { IChatCardProps, IChatMessage } from '../ChatCard';
+import { IChatCardProps } from '../ChatCard';
 import Message from '../Message';
 import _ from 'lodash';
 import measuredData from './MeasuredData';
 
 interface IKVirtualListProps {
-  messages: IChatMessage[],
-  chatCardId: string,
+  chatCardProps: IChatCardProps,
+  // messages: IChatMessage[],
+  // chatCardId: string,
 }
 
 const KVirtualList: React.FC<IKVirtualListProps> = (
@@ -25,9 +26,12 @@ const KVirtualList: React.FC<IKVirtualListProps> = (
 ) => {
 
   const {
-    messages,
-    chatCardId
+    chatCardProps,
+    // messages,
+    // chatCardId
   } = props;
+
+  const { messageList: messages, id: chatCardId } = chatCardProps;
 
   /**
    * 列表的真实高度，外部列表的高度
@@ -62,25 +66,32 @@ const KVirtualList: React.FC<IKVirtualListProps> = (
   const chatId = useRef('');
 
   /**
-   * 聊天记录改变时
+   * 聊天记录改变时立即回调
+   * 这里不能使用 useEffect，useEffect 会等待重渲染结束后才回调
+   * 
    * 1. 切换聊天
-   *    - 手动执行渲染（不滚动不会触发渲染）
+   *    - 滚动至底部
    * 2. 聊天有新消息
    *    - 重新估算虚拟列表高度，只需要先前的高度加上新消息的预估高度
+   *    - 滚动至底部
    */
-  useEffect(() => {
+  useMemo(() => {
+    console.log('kennen 更新聊天', chatCardId, chatId.current);
     if (!messages) {
       return;
     }
-    console.log('kennen 更新聊天', chatCardId, chatId.current);
-    // const measuredDataInfo = measuredData.useMeasuredDataInfo[chatCardId]();
     // 同一个聊天，有新消息
     if (chatId.current === chatCardId) {
       measuredData.updateOnNewMessage(chatCardId, messages.length);
     } else { // 切换聊天
       chatId.current = chatCardId;
     }
-  }, [messages]);
+  }, [messages, chatCardId]);
+
+  useEffect(() => {
+    // 重渲染后将虚拟列表滚动到最新一条消息
+    scrollToBottom();
+  }, [messages, chatCardId]);
 
   /**
    * 监听虚拟列表自身真实高度
@@ -101,29 +112,21 @@ const KVirtualList: React.FC<IKVirtualListProps> = (
       if (virtualListRef.current) {  
         resizeObserver.unobserve(virtualListRef.current);  
       }  
-    };  
+    };
   }, []);
-
-  /**
-   * 滑动至底部
-   */
-  useLayoutEffect(() => {
-    scrollToBottom();
-  }, [messages, chatCardId]);
 
   /**
    * 虚拟列表滚动至底部
    */
   const scrollToBottom = () => {
     if (virtualListRef.current) {
-      const { listVirtualHeight } = measuredData.useMeasuredDataInfo[chatCardId]();
       virtualListRef.current.scrollTop = virtualListRef.current.scrollHeight - listRealHeight;
     }
   }
 
   const throttledGetRenderMessageList = _.throttle(() => {
     return getRenderMessageList();
-  }, 300, { leading: true, trailing: true });
+  }, 200, { leading: true, trailing: true });
 
   /**
    * 实例化真正需要渲染的 item
@@ -165,7 +168,7 @@ const KVirtualList: React.FC<IKVirtualListProps> = (
         const listVirtualHeight = measuredData.useMeasuredDataInfo[chatCardId]().listVirtualHeight;
         setScrolledOffset(listVirtualHeight - virtualListRef.current.scrollTop - listRealHeight);
       }
-    }, 500, { leading: true, trailing: true }
+    }, 300, { leading: true, trailing: true }
   );
 
   const listVirtualHeight = measuredData.useMeasuredDataInfo[chatCardId](messages.length).listVirtualHeight;

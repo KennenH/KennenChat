@@ -160,20 +160,18 @@ class MeasuredData {
       return;
     }
     const { measuredItem, topMostMeasuredIndex } = measuredDataInfo;
-
-    // 更新虚拟列表虚拟高度
-    // const newListVirtualHeight = listVirtualHeight - measuredData[index].height + offsetHeight;
-    // console.log(`kennen 3虚拟列表更新 ${listVirtualHeight} => ${newListVirtualHeight}`);
-
-    // 如果滚动到顶部了，那么应该可以直接确定虚拟列表的最终虚拟高度
+    
+    // 如果滚动到顶部了，那么可以直接确定虚拟列表的最终虚拟高度
     if (index === 0) {
-      const { height, offset } = measuredItem[index];
+      const { height, offset } = measuredItem[0];
       measuredDataInfo.listVirtualHeight = height + offset;
     } else {
-      // 每渲染一个子 item 都更新虚拟高度
-      // console.log(`kennen 虚拟列表更新 ${listVirtualHeight} => ${listVirtualHeight - measuredData[index].height + offsetHeight}`);
-      measuredDataInfo.listVirtualHeight += (offsetHeight - measuredItem[index].height);
+      if (topMostMeasuredIndex > 0) {
+        // 每渲染一个子 item 都更新虚拟高度
+        measuredDataInfo.listVirtualHeight += (offsetHeight - measuredItem[index].height);
+      }
     }
+
     // 更新下标为 index 的 item 的高度    
     measuredItem[index].height = offsetHeight;
     // 更新从 topMostMeasuredIndex 开始到最新消息的偏移
@@ -210,6 +208,10 @@ class MeasuredData {
         offset += height;
       }
       measuredDataInfo.topMostMeasuredIndex = index;
+      // if (index === 0) {
+      //   const { height, offset } = measuredItem[0];
+      //   measuredDataInfo.listVirtualHeight = height + offset;
+      // }
     }
     return measuredItem[index];
   }
@@ -231,7 +233,7 @@ class MeasuredData {
   ) => {
     const endIndex = this.getEndIndex(itemCount, scrolledOffset, measuredDataInfo);
     const startIndex = this.getStartIndex(listRealheight, endIndex, measuredDataInfo);
-    return [startIndex, Math.min(itemCount - 1, endIndex + 2)];
+    return [Math.max(0, startIndex - 3), Math.min(itemCount - 1, endIndex + 2)];
   }
 
   /**

@@ -4,7 +4,7 @@ import WindowHeader, { WindowHeaderActionConfig, WindowHeaderTitleConfig } from 
 import { IChatCardProps } from '@/components/ChatCard';
 import Message from '@/components/Message';
 import InputPanel from '@/components/InputPanel';
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import KVirtualList from '@/components/KVirtualList';
 import globalStore from '@/store/globalStore';
 import { inject, observer } from 'mobx-react';
@@ -34,7 +34,9 @@ const scrollToBottom = (
  * chat 二级路由，参数无法从函数中直接获取
  * 需要使用 {@link useOutletContext} 获取
  */
-const Chat: React.FC = () => {
+const Chat: React.FC = (
+  // props: IChatProps,
+) => {
 
   const { 
     chatCardProps,
@@ -44,11 +46,20 @@ const Chat: React.FC = () => {
     handleClickSendMessage,
   } = useOutletContext() as IChatProps;
 
+  // const { 
+  //   chatCardProps,
+  //   isFullScreen,
+  //   handleToggleFullScreen,
+  //   handleClickEdit,
+  //   handleClickSendMessage,
+  // } = props;
+
   // 非虚拟列表引用
   const noneVirtualMessageListRef = useRef<HTMLDivElement>(null);
 
   // 当非虚拟列表消息变化时滚动至底部
-  useLayoutEffect(() => {
+  useEffect(() => {
+    console.log('kennen chat 层 useEffect');
     scrollToBottom(noneVirtualMessageListRef.current);
   }, [chatCardProps?.messageList]);
 
@@ -93,8 +104,9 @@ const Chat: React.FC = () => {
         globalStore.isUseVirtualList && chatCardProps ?
         (
           <KVirtualList
-            chatCardId={chatCardProps?.id}
-            messages={chatCardProps?.messageList}
+            chatCardProps={chatCardProps}
+            // chatCardId={chatCardProps?.id}
+            // messages={chatCardProps?.messageList}
           />
         ) :
         (

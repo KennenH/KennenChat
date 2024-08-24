@@ -6,7 +6,7 @@ import SideBarHeader from "../SideBar/SideBarHeader";
 import SideBarBody from "../SideBar/SideBarBody";
 import SideBarFooter from "../SideBar/SideBarFooter";
 import { IChatCardProps, IChatMessage, Sender } from "@/components/ChatCard";
-import { IChatProps } from "../Window/Chat";
+import Chat, { IChatProps } from "../Window/Chat";
 import { ISettingProps } from "../Window/Setting";
 import classNames from "classnames";
 import _ from "lodash";
@@ -209,12 +209,10 @@ const HomeContainer: React.FC = () => {
    * 输入区域点击发送按钮
    */
   const handleClickSendMessage = (message: string) => {
-    const newChatList = chatList ? _.cloneDeep(chatList) : [createChatCard()];
-    newChatList[selectedIdx]
-      .messageList
-      .push(createMessage(message, Sender.ME));
+    const newChatList = chatList ? [...chatList] : [createChatCard()];
+    const newMessageList = [...newChatList[selectedIdx].messageList, createMessage(message, Sender.ME)];
+    newChatList[selectedIdx].messageList = newMessageList;
     setChatList(newChatList);
-    console.log('kennen', _.isEqual(chatList[selectedIdx].messageList, newChatList[selectedIdx].messageList));
   };
 
   /**
@@ -264,6 +262,13 @@ const HomeContainer: React.FC = () => {
             // 将当前选中的 chat card 进行传递
             context={chatParam}
           />
+          {/* <Chat
+            chatCardProps={chatList[selectedIdx]}
+            isFullScreen={isFullScreen}
+            handleToggleFullScreen={handleToggleFullScreen}
+            handleClickEdit={handleClickEdit}
+            handleClickSendMessage={handleClickSendMessage}
+          /> */}
         </div>
 
         {/* 弹窗区域 */}
