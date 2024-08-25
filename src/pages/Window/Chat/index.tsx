@@ -59,7 +59,6 @@ const Chat: React.FC = (
 
   // 当非虚拟列表消息变化时滚动至底部
   useEffect(() => {
-    console.log('kennen chat 层 useEffect');
     scrollToBottom(noneVirtualMessageListRef.current);
   }, [chatCardProps?.messageList]);
 
