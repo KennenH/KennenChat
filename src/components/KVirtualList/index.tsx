@@ -8,7 +8,7 @@
  *    
  *    -> 列表在往上滚动的过程中计算沿途的子 item 的 bottom 和高度，并作为后续子 item 的位置计算的基础
  */
-import React, { RefObject, useEffect, useMemo, useRef, useState } from 'react';
+import React, { RefObject } from 'react';
 import './index.scss';
 import { IChatCardProps, IChatMessage } from '../ChatCard';
 import Message from '../Message';
@@ -16,8 +16,6 @@ import _ from 'lodash';
 
 interface IKVirtualListProps {
   chatCardProps: IChatCardProps,
-  // messages: IChatMessage[],
-  // chatCardId: string,
 }
 
 interface ListVirtualHeights {
@@ -42,10 +40,6 @@ interface MeasuredItem {
 interface MeasuredDataInfos {
   [id: string]: MeasuredDataInfo,
 }
-
-type UseMeasuredDataInfoType = {
-  [key: string]: (itemCount?: number) => MeasuredDataInfo;
-};
 
 /**
  * 当前聊天已测量的子 item 缓存数据
@@ -76,7 +70,6 @@ interface IKVirtualListState {
   listRealHeight: number,
   listVirtualHeights: ListVirtualHeights,
   scrolledOffset: number,
-
 }
 
 class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListState> {
@@ -130,15 +123,26 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
     }  
   }
 
-  /**
-   * 聊天记录改变时
-   * 
-   * 1. 切换聊天
-   *    - 滚动至底部
-   * 2. 聊天有新消息
-   *    - 重新估算虚拟列表高度，只需要先前的高度加上新消息的预估高度
-   *    - 滚动至底部
-   */
+  UNSAFE_componentWillReceiveProps(
+    nextProps: Readonly<IKVirtualListProps>, 
+    nextContext: any
+  ): void {
+    const { chatCardProps: { messageList, id } } = this.props;
+    const { messageList: nextMessageList, id: nextId } = nextProps.chatCardProps;
+    if (
+      nextMessageList 
+      && id === nextId 
+      && nextMessageList !== messageList
+    ) {
+      // 有新消息时：更新虚拟列表高度和测量数据
+      if (nextMessageList.length > messageList.length) {
+        this.updateOnNewMessage(nextId, nextMessageList.length);
+      } else { // 删除消息时
+        // todo 删除消息后更新虚拟列表高度和测量数据
+      }
+    }
+  }
+
   componentDidUpdate(
     prevProps: Readonly<IKVirtualListProps>, 
     prevState: Readonly<IKVirtualListState>, 
@@ -147,17 +151,6 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
     const { messageList: prevMessageList, id: prevId } = prevProps.chatCardProps;
     const { chatCardProps: { messageList, id } } = this.props;
     const { listVirtualHeights } = this.state;
-
-
-    if (messageList !== prevMessageList) {
-      if (!messageList) {
-        return;
-      }
-      // 同一个聊天，有新消息时更新虚拟列表高度和测量数据
-      if (prevId === id) {
-        this.updateOnNewMessage(id, messageList.length);
-      }
-    }
 
     if (messageList !== prevMessageList || id !== prevId) {
       // 如果虚拟列表高度为空则按照消息条数预估虚拟列表高度
@@ -168,8 +161,8 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
         this.setState({ listVirtualHeights: newListVirtualHeights });
       }
   
-      // 重渲染后将虚拟列表滚动到最新一条消息
       this.scrollToBottom();
+      this.throttledScroll();
     }
   }
 
@@ -276,7 +269,7 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
   ) => {
     const endIndex = this.getEndIndex(itemCount, scrolledOffset, measuredDataInfo);
     const startIndex = this.getStartIndex(listRealheight, endIndex, measuredDataInfo);
-    return [Math.max(0, startIndex - 3), Math.min(itemCount - 1, endIndex + 2)];
+    return [Math.max(0, startIndex - 2), Math.min(itemCount - 1, endIndex + 3)];
   }
 
   /**
@@ -314,7 +307,10 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
    * @param chatCardId 聊天 id
    * @param itemCount 聊天中有多少条聊天记录
    */
-  private updateOnNewMessage = (chatCardId: string, itemCount: number) => {
+  private updateOnNewMessage = (
+    chatCardId: string, 
+    itemCount: number
+  ) => {
     // 更新虚拟列表的高度，即加上一个新消息的预估高度
     const measuredDataInfo = this.useMeasuredDataInfo[chatCardId];
     const estimatedHeight = this.getEstimatedItemHeight();
@@ -401,6 +397,7 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
 
   private throttledGetRenderMessageList = _.throttle(() => {
     return this.getRenderMessageList();
+    // return (<div></div>);
   }, 200, { leading: true, trailing: true });
 
   /**
@@ -415,7 +412,6 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
     }
 
     const { listRealHeight, scrolledOffset } = this.state;
-
     const measuredDataInfo = this.useMeasuredDataInfo[id];
     const [startIndex, endIndex] = this.getRenderIndex(
       messageList.length,

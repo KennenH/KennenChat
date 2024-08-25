@@ -209,7 +209,7 @@ const HomeContainer: React.FC = () => {
    * 输入区域点击发送按钮
    */
   const handleClickSendMessage = (message: string) => {
-    const newChatList = chatList ? [...chatList] : [createChatCard()];
+    const newChatList = chatList ? _.cloneDeep(chatList) : [createChatCard()];
     const newMessageList = [...newChatList[selectedIdx].messageList, createMessage(message, Sender.ME)];
     newChatList[selectedIdx].messageList = newMessageList;
     setChatList(newChatList);
