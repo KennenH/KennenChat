@@ -2,8 +2,8 @@ import axios from "axios";
 import { getTokenLocal } from "./token";
 
 const request = axios.create({
-  baseURL: 'http://geek.itheima.net/v1_0',
-  timeout: 5000
+  baseURL: 'http://localhost:8008',
+  timeout: 10000
 });
 
 request.interceptors.request.use(

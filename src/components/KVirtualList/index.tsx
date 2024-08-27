@@ -134,9 +134,11 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
       && id === nextId 
       && nextMessageList !== messageList
     ) {
+      const nextLen = nextMessageList.length;
+      const nowLen = messageList.length;
       // 有新消息时：更新虚拟列表高度和测量数据
-      if (nextMessageList.length > messageList.length) {
-        this.updateOnNewMessage(nextId, nextMessageList.length);
+      if (nextLen > nowLen) {
+        this.updateOnNewMessage(nextId, nextMessageList.length, nextLen - nowLen);
       } else { // 删除消息时
         // todo 删除消息后更新虚拟列表高度和测量数据
       }
@@ -305,32 +307,43 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
    * 当有新消息时更新已经测量过的偏移数据
    * 
    * @param chatCardId 聊天 id
-   * @param itemCount 聊天中有多少条聊天记录
+   * @param itemCount 更新后聊天中有多少条聊天记录
+   * @param countDiff 上一次 messageList 和这一次 messageList 的元素多了几个
    */
   private updateOnNewMessage = (
     chatCardId: string, 
-    itemCount: number
+    itemCount: number,
+    countDiff: number,
   ) => {
-    // 更新虚拟列表的高度，即加上一个新消息的预估高度
+    // 更新虚拟列表的高度，即加上 diif 个新消息的预估高度
     const measuredDataInfo = this.useMeasuredDataInfo[chatCardId];
     const estimatedHeight = this.getEstimatedItemHeight();
     const { listVirtualHeights } = this.state;
     const newListVirtualHeights = {...listVirtualHeights};
-    newListVirtualHeights[chatCardId] += estimatedHeight;
+    newListVirtualHeights[chatCardId] += estimatedHeight * countDiff;
     this.setState({
       listVirtualHeights: newListVirtualHeights,
     });
 
     // 将新消息的预估高度和偏移量放入测量数据
+    // 这一步是保证虚拟列表动态添加后能够在渲染的任何时候获取到子组件测量数据的关键
     const measuredItem = measuredDataInfo.measuredItem;
-    measuredItem[itemCount - 1] = { 
-      height: estimatedHeight,
-      offset: 0,
-    };
     
-    // 从最新一条消息更新至 topMost
+    // 从最新一条消息更新至 topMost，分两段更新
+    // 1. 新增消息预估测量数据：只更新新增部分的消息 
     let offset = 0;
-    for (let i = itemCount - 1; i >= measuredDataInfo.topMostMeasuredIndex; i--) {
+    // 两段更新分界点
+    const latestOldMessageIdx = itemCount - 1 - countDiff;
+    for (let i = itemCount - 1; i > latestOldMessageIdx; i--) {
+      measuredItem[i] = { 
+        height: estimatedHeight,
+        offset,
+      };
+      offset += estimatedHeight;
+    }
+    
+    // 2. 已有消息更新测量数据：只更新之前已存在的消息
+    for (let i = latestOldMessageIdx; i >= measuredDataInfo.topMostMeasuredIndex; i--) {
       measuredItem[i].offset = offset;
       offset += measuredItem[i].height;
     }

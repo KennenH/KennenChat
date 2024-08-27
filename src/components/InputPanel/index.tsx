@@ -2,6 +2,7 @@ import { Button } from 'antd';
 import './index.scss';
 import { useState } from 'react';
 import exeCmd from './utils';
+import messageStore from '@/store/MessageStore';
 
 interface IInputPanelProps {
   handleClickSendMessage: Function,
@@ -84,6 +85,7 @@ const InputPanel: React.FC<IInputPanelProps> = (props: IInputPanelProps) => {
           />
           <Button
             className='input-panel-send-button'
+            disabled={messageStore.isFetchingMsg}
             onClick={sendMessage}
           >
             发送

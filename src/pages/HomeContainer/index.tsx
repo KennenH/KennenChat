@@ -1,5 +1,5 @@
 import { request } from "@/utils";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import './index.scss';
 import { NavigateFunction, Outlet, useNavigate } from "react-router-dom";
 import SideBarHeader from "../SideBar/SideBarHeader";
@@ -14,6 +14,8 @@ import localforage from "localforage";
 import { CHAT_LIST_KEY } from "@/constants";
 import { message } from "antd";
 import { v4 as uuidv4 } from 'uuid';
+import { CompletionResp } from "./type";
+import messageStore from "@/store/MessageStore";
 
 /**
  * 初始化时和清空时自动生成一条新的聊天
@@ -89,6 +91,11 @@ const HomeContainer: React.FC = () => {
    * antd 消息提示
    */
   const [messageApi, contextHolder] = message.useMessage();
+
+  /**
+   * 发送消息后需要调用 gpt 接口，回调中必须获取最新的 chatList 引用，否则会导致消息覆盖
+   */
+  const latestChatListRef = useRef<IChatCardProps[]>();
 
   // 加载聊天记录 
   useEffect(() => {
@@ -209,10 +216,42 @@ const HomeContainer: React.FC = () => {
    * 输入区域点击发送按钮
    */
   const handleClickSendMessage = (message: string) => {
-    const newChatList = chatList ? _.cloneDeep(chatList) : [createChatCard()];
-    const newMessageList = [...newChatList[selectedIdx].messageList, createMessage(message, Sender.ME)];
-    newChatList[selectedIdx].messageList = newMessageList;
-    setChatList(newChatList);
+    if (messageStore.isFetchingMsg) {
+      return;
+    }
+    messageStore.setIsFetchingMsg(true);
+
+    const newMyChatList = chatList ? _.cloneDeep(chatList) : [createChatCard()];
+    const newMyMessageList = [...newMyChatList[selectedIdx].messageList, createMessage(message, Sender.ME)];
+    newMyChatList[selectedIdx].messageList = newMyMessageList;
+    setChatList(() => newMyChatList);
+
+    // 标记当前最新的 chatList，后续回调时需要使用
+    latestChatListRef.current = newMyChatList;
+
+    request
+      .post('/api/next-chat/completion', {
+        "content": message
+      })
+      .then(res => {
+        // 这里不能再创建一个 newChatList
+        // 因为这里闭包会捕获请求发送前的 chatList，等数据返回后 gpt 的回答将会覆盖上一条消息
+        const msg = res.data as CompletionResp;
+        const newGPTChatList = latestChatListRef.current ? _.cloneDeep(latestChatListRef.current) : [createChatCard()];
+        const newGPTMessageList = [...newGPTChatList[selectedIdx].messageList, createMessage(msg.result, Sender.NOT_ME)];
+        newGPTChatList[selectedIdx].messageList = newGPTMessageList;
+        setChatList(newGPTChatList);
+      })
+      .catch(e => {
+        messageApi.open({
+          type: 'error',
+          content: '出错了~稍后再试试吧',
+        });
+        console.log(`completion 错误 => ${e}`);
+      })
+      .finally(() => {
+        messageStore.setIsFetchingMsg(false);
+      });
   };
 
   /**
