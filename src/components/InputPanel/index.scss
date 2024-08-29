@@ -67,9 +67,6 @@
   &::-webkit-scrollbar-thumb:hover {
       background: #404040; /* 滚动条悬停时的颜色 */
   }
-
-  &:focus {
-  }
 }
 
 .input-panel-send-button {
@@ -80,4 +77,8 @@
   background-color: var(--primary);
   border: none;
   font-size: 12px;
+
+  &:disabled {
+    background-color: gray;
+  }
 }

@@ -6,6 +6,7 @@ import { Provider } from 'mobx-react';
 import './index.scss';
 import { ConfigProvider, theme } from 'antd';
 import globalStore from './store/globalStore';
+import messageStore from './store/MessageStore';
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -28,7 +29,7 @@ root.render(
         },
       }}
     >
-      <Provider globalStore={globalStore}>
+      <Provider globalStore={globalStore} messageStore={messageStore}>
         <RouterProvider router={router} />
       </Provider>
     </ConfigProvider>

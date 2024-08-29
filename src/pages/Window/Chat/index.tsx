@@ -1,13 +1,14 @@
 import { useOutletContext } from 'react-router-dom';
 import './index.scss';
 import WindowHeader, { WindowHeaderActionConfig, WindowHeaderTitleConfig } from '@/components/WindowHeader';
-import { IChatCardProps } from '@/components/ChatCard';
+import { IChatCardProps, Sender } from '@/components/ChatCard';
 import Message from '@/components/Message';
 import InputPanel from '@/components/InputPanel';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import KVirtualList from '@/components/KVirtualList';
 import globalStore from '@/store/globalStore';
 import { inject, observer } from 'mobx-react';
+import messageStore from '@/store/MessageStore';
 
 export interface IChatProps {
   chatCardProps?: IChatCardProps,
@@ -57,6 +58,9 @@ const Chat: React.FC = (
   // 非虚拟列表引用
   const noneVirtualMessageListRef = useRef<HTMLDivElement>(null);
 
+  // 虚拟列表引用
+  const virtualMessageListRef = useRef<KVirtualList>(null);
+
   // 当非虚拟列表消息变化时滚动至底部
   useEffect(() => {
     scrollToBottom(noneVirtualMessageListRef.current);
@@ -80,18 +84,33 @@ const Chat: React.FC = (
     },
   ];
 
-  const messageData = globalStore.isUseVirtualList ?
-    null : 
-    chatCardProps
-      ?.messageList
-      .map(msg => {
+  /**
+   * 输入区域获取焦点
+   */
+  const onInputAreaFocused = () => {
+    // 非虚拟列表滚动至底部
+    scrollToBottom(noneVirtualMessageListRef.current);
+    // 虚拟列表滚动至底部
+    virtualMessageListRef?.current?.scrollToBottom();
+  }
+
+  const messages = chatCardProps?.messageList;
+  const nonVirtualMessageData = !globalStore.isUseVirtualList && messages ?
+    messages
+      .map((msg, idx) => {
         return (
           <Message
             key={msg.fingerprint}
             message={msg}
+            isShowLoading={
+              idx === messages.length - 1
+                && msg.sender === Sender.ASSISTANT
+                && messageStore.isConnecting
+            }
           />
         );
-      });
+      })
+    : null;
 
   return (
     <>
@@ -103,25 +122,24 @@ const Chat: React.FC = (
         globalStore.isUseVirtualList && chatCardProps ?
         (
           <KVirtualList
+            ref={virtualMessageListRef}
             chatCardProps={chatCardProps}
-            // chatCardId={chatCardProps?.id}
-            // messages={chatCardProps?.messageList}
           />
         ) :
         (
           <div 
             ref={noneVirtualMessageListRef}
             className='chat-body'>
-            {messageData}
+            {nonVirtualMessageData}
           </div>
         )
       }
       <InputPanel
         handleClickSendMessage={handleClickSendMessage}
-        onTextAreaFocused={() => scrollToBottom(noneVirtualMessageListRef.current)}
+        onTextAreaFocused={onInputAreaFocused}
       />
     </>
   );
 };
 
-export default inject("globalStore")(observer(Chat));
+export default inject("globalStore", "messageStore")(observer(Chat));

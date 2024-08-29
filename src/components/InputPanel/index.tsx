@@ -3,6 +3,8 @@ import './index.scss';
 import { useState } from 'react';
 import exeCmd from './utils';
 import messageStore from '@/store/MessageStore';
+import { observer } from 'mobx-react-lite';
+import { inject } from 'mobx-react';
 
 interface IInputPanelProps {
   handleClickSendMessage: Function,
@@ -32,6 +34,10 @@ const InputPanel: React.FC<IInputPanelProps> = (props: IInputPanelProps) => {
    * 执行发送
    */
   const sendMessage = () => {
+    if (messageStore.isFetchingMsg || messageStore.isConnecting) {
+      return;
+    }
+
     if (inputText.length === 0) {
       return;
     }
@@ -85,7 +91,7 @@ const InputPanel: React.FC<IInputPanelProps> = (props: IInputPanelProps) => {
           />
           <Button
             className='input-panel-send-button'
-            disabled={messageStore.isFetchingMsg}
+            disabled={messageStore.isFetchingMsg || messageStore.isConnecting}
             onClick={sendMessage}
           >
             发送
@@ -96,4 +102,4 @@ const InputPanel: React.FC<IInputPanelProps> = (props: IInputPanelProps) => {
   );
 };
 
-export default InputPanel;
+export default inject("globalStore", "messageStore")(observer(InputPanel));

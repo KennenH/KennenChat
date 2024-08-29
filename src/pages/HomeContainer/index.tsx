@@ -1,21 +1,23 @@
-import { request } from "@/utils";
 import React, { useEffect, useRef, useState } from "react";
 import './index.scss';
 import { NavigateFunction, Outlet, useNavigate } from "react-router-dom";
 import SideBarHeader from "../SideBar/SideBarHeader";
 import SideBarBody from "../SideBar/SideBarBody";
 import SideBarFooter from "../SideBar/SideBarFooter";
-import { IChatCardProps, IChatMessage, Sender } from "@/components/ChatCard";
+import { IChatCardProps, IChatMessage, Role, Sender } from "@/components/ChatCard";
 import Chat, { IChatProps } from "../Window/Chat";
 import { ISettingProps } from "../Window/Setting";
 import classNames from "classnames";
 import _ from "lodash";
 import localforage from "localforage";
-import { CHAT_LIST_KEY } from "@/constants";
+import { CHAT_ERROR_PLACE_HOLDER, CHAT_HOW_CAN_I_HELP_U, CHAT_LIST_KEY } from "@/constants";
 import { message } from "antd";
 import { v4 as uuidv4 } from 'uuid';
-import { CompletionResp } from "./type";
 import messageStore from "@/store/MessageStore";
+import { completion, completionStream } from "@/utils/request";
+import { CompletionMessage } from "@/utils/type";
+import { observer } from "mobx-react-lite";
+import { inject } from "mobx-react";
 
 /**
  * 初始化时和清空时自动生成一条新的聊天
@@ -41,9 +43,9 @@ const createMessage = (
   sender?: Sender,
 ): IChatMessage => {
   return ({
-    content: content ?? "有什么可以帮你的吗",
+    content: content ?? CHAT_HOW_CAN_I_HELP_U,
     time: new Date(),
-    sender: sender ?? Sender.NOT_ME,
+    sender: sender ?? Sender.ASSISTANT,
     fingerprint: uuidv4(),
   });
 };
@@ -93,7 +95,7 @@ const HomeContainer: React.FC = () => {
   const [messageApi, contextHolder] = message.useMessage();
 
   /**
-   * 发送消息后需要调用 gpt 接口，回调中必须获取最新的 chatList 引用，否则会导致消息覆盖
+   * 聊天记录的引用，需要在流式输出中的每个 chunk 到来时获取最新的列表
    */
   const latestChatListRef = useRef<IChatCardProps[]>();
 
@@ -216,40 +218,70 @@ const HomeContainer: React.FC = () => {
    * 输入区域点击发送按钮
    */
   const handleClickSendMessage = (message: string) => {
-    if (messageStore.isFetchingMsg) {
-      return;
-    }
-    messageStore.setIsFetchingMsg(true);
+    messageStore.setIsConnecting(true);
 
+    // 将最新的用户消息放入聊天列表
     const newMyChatList = chatList ? _.cloneDeep(chatList) : [createChatCard()];
-    const newMyMessageList = [...newMyChatList[selectedIdx].messageList, createMessage(message, Sender.ME)];
+    const newMyMessageList = [...newMyChatList[selectedIdx].messageList, createMessage(message, Sender.USER)];
     newMyChatList[selectedIdx].messageList = newMyMessageList;
-    setChatList(() => newMyChatList);
+
+    // 剔除第一条自动生成的消息
+    // 将当前 chatList 的倒数 5 条消息作为 prompts
+    const prompts = newMyMessageList
+      .slice(1)
+      .slice(-5)
+      .map(chat => {
+        return {
+          role: Role[chat.sender],
+          content: chat.content,
+        } as CompletionMessage;
+      });
+
+    // 将即将生成的 gpt 回答消息放入聊天列表
+    const assistMessage = createMessage("", Sender.ASSISTANT)
+    newMyMessageList.push(assistMessage);
+    setChatList(newMyChatList);
 
     // 标记当前最新的 chatList，后续回调时需要使用
     latestChatListRef.current = newMyChatList;
 
-    request
-      .post('/api/next-chat/completion', {
-        "content": message
-      })
+    let gptMessage = '';
+    const decoder = new TextDecoder('utf-8');
+    completionStream(prompts)
       .then(res => {
-        // 这里不能再创建一个 newChatList
-        // 因为这里闭包会捕获请求发送前的 chatList，等数据返回后 gpt 的回答将会覆盖上一条消息
-        const msg = res.data as CompletionResp;
-        const newGPTChatList = latestChatListRef.current ? _.cloneDeep(latestChatListRef.current) : [createChatCard()];
-        const newGPTMessageList = [...newGPTChatList[selectedIdx].messageList, createMessage(msg.result, Sender.NOT_ME)];
-        newGPTChatList[selectedIdx].messageList = newGPTMessageList;
-        setChatList(newGPTChatList);
+        messageStore.setIsConnecting(false);
+        messageStore.setIsFetchingMsg(true);
+
+        const reader = res.body?.getReader();
+        return new Promise<void>((resolve, reject) => {
+          function processText({ done, value }: any) {
+            if (done) {
+              messageStore.setIsFetchingMsg(false);
+              resolve(); // 流完成后，resolve当前的Promise
+              return;
+            }
+
+            const chunk = decoder.decode(value, { stream: true });
+            gptMessage += chunk;
+            assistMessage.content = gptMessage;
+
+            const updatedChatList = latestChatListRef.current ? _.cloneDeep(latestChatListRef.current) : [createChatCard()];
+            setChatList(updatedChatList);
+
+            reader!.read().then(processText).catch(reject); 
+          }
+          reader!.read().then(processText).catch(reject); 
+        });
       })
       .catch(e => {
         messageApi.open({
           type: 'error',
           content: '出错了~稍后再试试吧',
         });
-        console.log(`completion 错误 => ${e}`);
+        console.log('completion stream error', e);
       })
       .finally(() => {
+        messageStore.setIsConnecting(false);
         messageStore.setIsFetchingMsg(false);
       });
   };
@@ -323,4 +355,4 @@ const HomeContainer: React.FC = () => {
   )
 };
 
-export default HomeContainer;
+export default inject("globalStore", "messageStore")(observer(HomeContainer));

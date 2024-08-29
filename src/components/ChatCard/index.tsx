@@ -6,9 +6,14 @@ import { CloseCircleOutlined } from '@ant-design/icons';
 import { MouseEventHandler } from 'react';
 
 export enum Sender {
-  ME = 0,
-  NOT_ME = 1,
+  USER = 0,
+  ASSISTANT = 1,
 }
+
+export const Role = {
+  [Sender.USER]: "user",
+  [Sender.ASSISTANT]: "assistant",  
+} as const;
 
 export interface IChatMessage {
   content: string,
