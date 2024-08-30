@@ -1,48 +1,41 @@
-创建一个简单的 Markdown 解析器可以使用 JavaScript，但是需要注意的是，完整的 Markdown 语法非常复杂，因此这个简单的示例可能只能涵盖部分基础功能。
+**这是一个粗体标题**
 
-以下是一个简单的 JavaScript 函数，用于解析一些基本的 Markdown 语法（如标题、粗体、斜体和链接）：
+### 这是一个h3标题
 
+- **无序列表**：
+	1. 第一项
+	2. 第二项
+		- 子项一
+		- 子项二
+- **有序列表**：
+	1. 第一组子列表项
+	2. 第二组子列表项
 
-```javascript
-function markdownParser(input) {
-    let output = '';
-
-    // 去除多余的空格和换行符
-    input = input.replace(/\s\s+/g, ' ').replace(/\n\n+/g, '<br/>');
-
-    // 处理标题
-    let h1 = input.match(/^#(.*)$/gm);
-    if (h1) {
-        for (let i = 0; i < h1.length; i++) {
-            output += `<h1>${h1[i].replace('#', '')}</h1>`;
-        }
-    }
-
-    // 处理粗体和斜体
-    let boldMatch = input.match(/\*\*(.*?)\*\*/g);
-    if (boldMatch) {
-        for (let i = 0; i < boldMatch.length; i++) {
-            output += `<strong>${boldMatch[i].replace('**', '').replace('**', '')}</strong>`;
-        }
-    }
-    let italicMatch = input.match(/\*(.*?)\*/g);
-    if (italicMatch) {
-        for (let i = 0; i < italicMatch.length; i++) {
-            output += `<i>${italicMatch[i].replace('*', '').replace('*', '')}</i>`;
-        }
-    }
-
-    // 处理链接（简化版）
-    let linkMatch = input.match(/\[(.*?)\]\(http.*?\)/g);
-    if (linkMatch) {
-        for (let i = 0; i < linkMatch.length; i++) {
-            output += `<a href="${linkMatch[i].match(/http.*?\//g)[0].slice(1)}">${linkMatch[i].match(/(.*?)\)/g)[0]}</a>`;
-        }
-    }
-
-    return output;
-}
+```ruby
+# 这是一个简单的代码块
+def hello_world
+  puts "Hello, world!"
+end
 ```
-这个函数接受一个 Markdown 字符串作为输入，然后使用正则表达式来匹配和解析不同的 Markdown 语法。然后，它使用 HTML 标签来替换匹配的 Markdown 语法。例如，`#` 开头的行将被解析为 `<h1>` 标签，`**` 包围的文本将被解析为 `<strong>` 标签，`*` 包围的文本将被解析为 `<i>` 标签，而链接则被解析为 `<a>` 标签。
 
-请注意，这个解析器非常简单，可能无法处理所有 Markdown 语法的复杂性。对于更复杂的 Markdown 内容，你可能需要使用更复杂的解析器或库，如 `remark.js` 或 `showdown.js`。
+```html
+<script>alert('这是一个xss攻击')</script>
+```
+
+==============================================
+<ul>
+    <strong>无序列表</strong>:
+        <ol>
+            <li>第一项</li>
+            <li>第二项</li>
+                <ul>
+                    <li>子项一</li>
+                    <li>子项二</li>
+                </ul>
+        </ol>
+    <strong>有序列表</strong>:
+        <ol>
+            <li>第一组子列表项</li>
+            <li>第二组子列表项</li>
+        </ol>
+</ul>

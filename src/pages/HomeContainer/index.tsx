@@ -18,6 +18,7 @@ import { completion, completionStream } from "@/utils/request";
 import { CompletionMessage } from "@/utils/type";
 import { observer } from "mobx-react-lite";
 import { inject } from "mobx-react";
+import globalStore from "@/store/globalStore";
 
 /**
  * 初始化时和清空时自动生成一条新的聊天
@@ -218,12 +219,16 @@ const HomeContainer: React.FC = () => {
    * 输入区域点击发送按钮
    */
   const handleClickSendMessage = (message: string) => {
-    messageStore.setIsConnecting(true);
-
     // 将最新的用户消息放入聊天列表
     const newMyChatList = chatList ? _.cloneDeep(chatList) : [createChatCard()];
     const newMyMessageList = [...newMyChatList[selectedIdx].messageList, createMessage(message, Sender.USER)];
     newMyChatList[selectedIdx].messageList = newMyMessageList;
+
+    // ai 静音
+    if (globalStore.isMuteAssistant) {
+      setChatList(newMyChatList);
+      return;
+    }
 
     // 剔除第一条自动生成的消息
     // 将当前 chatList 的倒数 5 条消息作为 prompts
@@ -245,6 +250,8 @@ const HomeContainer: React.FC = () => {
     // 标记当前最新的 chatList，后续回调时需要使用
     latestChatListRef.current = newMyChatList;
 
+    messageStore.setIsConnecting(true);
+    
     let gptMessage = '';
     const decoder = new TextDecoder('utf-8');
     completionStream(prompts)

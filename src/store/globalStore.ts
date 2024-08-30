@@ -1,4 +1,4 @@
-import { types, Instance, flow } from "mobx-state-tree";
+import { types, flow } from "mobx-state-tree";
 import localforage from "localforage";
 
 /**
@@ -9,11 +9,22 @@ const GlobalStore = types
     /**
      * 暗黑模式
      */
-    isDarkMode: types.optional(types.boolean, false),
+    isDarkMode: types.optional(types.boolean, true),
+
     /**
      * 是否使用虚拟列表
      */
-    isUseVirtualList: types.optional(types.boolean, true)
+    isUseVirtualList: types.optional(types.boolean, true),
+
+    /**
+     * ai 静音
+     */
+    isMuteAssistant: types.optional(types.boolean, false),
+
+    /**
+     * 是否解析 markdown
+     */
+    isParseMarkdown: types.optional(types.boolean, true),
   })
   .actions((self) => ({
     setDarkMode(value: boolean) {
@@ -22,11 +33,19 @@ const GlobalStore = types
     switchVirtualList(virtual: boolean) {
       self.isUseVirtualList = virtual;
     },
+    shouldMuteAssistant(mute: boolean) {
+      self.isMuteAssistant = mute;
+    },
+    shouldParseMarkdown(parse: boolean) {
+      self.isParseMarkdown = parse;
+    },
     loadConfigFromStorage: flow(function* () {
       const config = yield localforage.getItem("appConfig");
       if (config) {
         self.isDarkMode = config.isDarkMode;
         self.isUseVirtualList = config.isUseVirtualList;
+        self.isMuteAssistant = config.isMuteAssistant;
+        self.isParseMarkdown = config.isParseMarkdown;
       }
     }),
   }));

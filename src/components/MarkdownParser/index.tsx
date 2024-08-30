@@ -1,17 +1,20 @@
 import './index.scss';
 
 interface IMarkdownParserProps {
-
+  content: string,
 }
 
 const MarkdownParser: React.FC<IMarkdownParserProps> = (props: IMarkdownParserProps) => {
-  const {} = props;
+
+  const {
+    content,
+  } = props;
 
   /**
    * 转移字符防止 xss 攻击
    */
-  const escapeHtml = (str: string) => {
-    return str.replace(/&/g, "&amp;")
+  const escapeHtml = (content: string) => {
+    return content.replace(/&/g, "&amp;")
               .replace(/</g, "&lt;")
               .replace(/>/g, "&gt;")
               .replace(/"/g, "&quot;")
@@ -21,59 +24,43 @@ const MarkdownParser: React.FC<IMarkdownParserProps> = (props: IMarkdownParserPr
   /**
    * 将对应的符号转换为对应的样式
    */
-  const parseMarkdown = (text: string) => {
-    text = escapeHtml(text);
+  const parseMarkdown = (content: string) => {
+    content = escapeHtml(content);
 
     // 粗体 (**text**)
-    text = text.replace(/(\*\*)(.*?)\1/g, '<strong>$2</strong>');
+    content = content.replace(/(\*\*)(.*?)\1/g, '<strong>$2</strong>');
 
     // 代码块 (```)
-    text = text.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+    content = content.replace(/```([\s\S]*?)```/g, '\n<pre><code>$1</code></pre>\n');
 
     // 内联代码/标签 (`text`)
-    text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+    content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
 
-    // 标题 (h1-h6)，是几就写几个 #
+    // 标题 (h1-h6) #
     for (let i = 6; i >= 1; i--) {
-        let header = '#'.repeat(i);
-        let regex = new RegExp(`^${header} (.*?)$`, 'gm');
-        text = text.replace(regex, `<h${i}>$1</h${i}>`);
+      let header = '#'.repeat(i);
+      let regex = new RegExp(`^${header} (.*?)$`, 'gm');
+      content = content.replace(regex, `<h${i}>$1</h${i}>`);
     }
 
-    // 有序列表 (1. )
-    text = text.replace(/^\d+\. (.*?)(\n|$)/gm, '<ol><li>$1</li></ol>');
+    // 有序列表 (1. item)
+    content = content.replace(/^\d+\.\s+(.*?)(\n|$)/gm, '<oli>$1</oli>\n');
+    content = content.replace(/(<oli>.*<\/oli>)+/gs, '<ol>\n$1\n</ol>\n');
 
-    // 无序列表 (- )
-    text = text.replace(/^[\-] (.*?)(\n|$)/gm, '<ul><li>$1</li></ul>');
+    // 无序列表 (-, *, + item)
+    content = content.replace(/^[\-\*\+]\s+(.*?)(\n|$)/gm, '<uli>$1</uli>\n');
+    content = content.replace(/(<uli>.*<\/uli>)+/gs, '<ul>\n$1\n</ul>\n');
 
-    return text;
+    // 统一替换占位符
+    content = content.replace(/<uli>(.*[\s]*)<\/uli>/gm, '<li>$1</li>');
+    content = content.replace(/<oli>(.*[\s]*)<\/oli>/gm, '<li>$1</li>');
+
+    return content;
   }
-
-  const markdownText = `
-  # Title
-  ## Subtitle
-
-  This is **bold** text.
-
-  \`\`\`
-  function hello() {
-      console.log("Hello, world!");
-  }
-  \`\`\`
-
-  1. First item
-  2. Second item
-
-  - Bullet 1
-  - Bullet 2
-  `;
-
-  const html = parseMarkdown(markdownText);
-  console.log(html);
-
 
   return (
     <>
+      {parseMarkdown(content)}
     </>
   );
 };

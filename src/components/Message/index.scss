@@ -99,6 +99,15 @@
   font-size: 12px;
   line-height: 1.5;
   word-wrap: break-word;
+  white-space: pre-line;
+
+  & > *:first-child::before {
+    margin-top: 0;
+  }
+
+  & > *:last-child::after {
+    margin-bottom: 0;
+  }
 }
 
 .message-date {
@@ -115,6 +124,82 @@
   z-index: 1;
 }
 
+.message-markdown-ul {
+  margin-top: 0;
+  margin-bottom: 16px;
+  padding-left: 2em;
+}
+
+.message-markdown-ol {
+  margin-top: 0;
+  margin-bottom: 16px;
+  padding-left: 2em;
+}
+
+.message-markdown-h1 {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  line-height: 1.25;
+}
+
+.message-markdown-h2 {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  line-height: 1.25;
+}
+
+.message-markdown-h3 {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  line-height: 1.25;
+}
+
+.message-markdown-h4 {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  line-height: 1.25;
+}
+
+.message-markdown-h5 {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  line-height: 1.25;
+}
+
+.message-markdown-h6 {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  line-height: 1.25;
+}
+
+.message-markdown-inline-code {
+  padding: 3px 5px;
+  background-color: hsla(215,8%,47%,.4);
+  border-radius: 5px;
+}
+
+// 修改 highlight.js 的滚动条和外边框样式
+.hljs {
+  border-radius: 10px;
+  
+  &::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+      background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+      background: #404040;
+      border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+      background: #404040;
+  }
+}
 
 // 消息体自下往上淡入
 @keyframes message-slide-in {

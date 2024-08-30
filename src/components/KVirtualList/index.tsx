@@ -438,7 +438,6 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
     if (this.dummyDivRef.current) {
       this.dummyDivRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-    // this.rafScroll();
   }
 
   private throttledGetRenderMessageList = _.throttle(() => {
