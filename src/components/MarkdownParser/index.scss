@@ -1,0 +1,16 @@
+.markdown-body {
+  -ms-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  margin: 0;
+  // color: var(--color-fg-default);
+  // background-color: var(--color-canvas-default);
+  font-size: 14px;
+  line-height: 1.5;
+  word-wrap: break-word;
+
+  &.code {
+    display: block;
+    overflow-x: auto;
+    padding: 1em;
+  }
+}
