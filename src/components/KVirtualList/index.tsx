@@ -308,8 +308,8 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
       offset <= maxVisibleOffset 
       && endIndex < messageList.length
     ) {
-      endIndex++;
       offset += this.getMesuredData(endIndex).height;
+      endIndex++;
     }
 
     return endIndex;
@@ -398,6 +398,7 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
       measuredDataInfo.bottomMostMeasuredIndex = index;
     }
 
+    console.log(`kennen i=${index}`, measuredItems[index]);
     return measuredItems[index];
   }
 
@@ -418,7 +419,6 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
     const estimatedHeight = this.getEstimatedItemHeight();
 
     // 将新消息的预估高度和偏移量放入测量数据
-    // 这一步是保证虚拟列表动态添加后能够在任何时候获取到子组件测量数据的关键
     const measuredItems = measuredDataInfo.measuredItems;
     
     // 从 bottomMost 更新至最新添加的消息
