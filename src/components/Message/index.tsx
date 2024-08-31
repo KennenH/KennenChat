@@ -66,11 +66,11 @@ const Message: React.FC<IMessageProps> = (
       // 内联代码/标签 (`text`)
       .replace(/`([^`]+)`/g, '<code class=\'message-markdown-inline-code\'>$1</code>')
       // 有序列表 (1. )
-      .replace(/^\d+\.\s+(.*?)(\r?\n|$)/gm, '<oli>$1</oli>')
-      .replace(/(<oli>.*<\/oli>)+/gs, '<ol class=\'message-markdown-ol\'>$1</ol>')
+      .replace(/^\d+\.\s+(.*?)(\n|$)/gm, '<oli>$1</oli>')
+      .replace(/(<oli>.*?<\/oli>\n?)+/g, '<ol class=\'message-markdown-ol\'>$&</ol>')
       // 无序列表 (-, *, + )
-      .replace(/^[\-\*\+]\s+(.*?)(\r?\n|$)/gm, '<uli>$1</uli>')
-      .replace(/(<uli>.*<\/uli>)+/gs, '<ul class=\'message-markdown-ul\'>$1</ul>');
+      .replace(/^[\-\*\+]\s+(.*?)(\n|$)/gm, '<uli>$1</uli>')
+      .replace(/(<uli>.*?<\/uli>\n?)+/g, '<ul class=\'message-markdown-ul\'>$&</ul>');
 
     // 标题 (h1-h6) #
     for (let i = 6; i >= 1; i--) {
@@ -80,7 +80,8 @@ const Message: React.FC<IMessageProps> = (
     }
 
       // 统一替换占位符
-    content = content.replace(/<uli>([\s\S]*?)<\/uli>/gm, '<li>$1</li>')
+    content = content
+      .replace(/<uli>([\s\S]*?)<\/uli>/gm, '<li>$1</li>')
       .replace(/<oli>([\s\S]*?)<\/oli>/gm, '<li>$1</li>')
       // 去除多余的换行符
       .replace(/(\r?\n){2,}/g, '\n');

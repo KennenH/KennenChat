@@ -1,24 +1,11 @@
 import axios from "axios";
-import { getTokenLocal } from "./token";
-import { CompletionMessage } from "./type";
+import { CompletionBody, CompletionMessage } from "./type";
+import globalStore from "@/store/globalStore";
 
 const request = axios.create({
   baseURL: 'http://localhost:8008',
   timeout: 30000,
 });
-
-// request.interceptors.request.use(
-//   (config) => {
-//     const token = getTokenLocal();
-//     if (token) {
-//       config.headers.Authorization = `Bearer ${token}`;
-//     }
-//     return config;
-//   },
-//   (error) => {
-//     return Promise.reject(error);
-//   }
-// );
 
 request.interceptors.response.use(
   (response) => {
@@ -32,25 +19,37 @@ request.interceptors.response.use(
 /**
  * 非流式响应
  */
-const completion = (prompts: CompletionMessage[]) => {
-  return request.post('/api/next-chat/completion/nonstream', prompts);
+const completionNonStream = (messages: CompletionMessage[]) => {
+  const requestBody: CompletionBody = {
+    messages,
+    temperature: globalStore.temperature,
+    top_p: globalStore.top_p,
+    penalty_score: globalStore.penalty_score,
+  }
+  return request.post('/api/next-chat/completion/nonstream', requestBody);
 }
 
 /**
  * 流式响应
  */
-const completionStream = (prompts: CompletionMessage[]) => {
+const completionStream = (messages: CompletionMessage[]) => {
+  const requestBody: CompletionBody = {
+    messages,
+    temperature: globalStore.temperature,
+    top_p: globalStore.top_p,
+    penalty_score: globalStore.penalty_score,
+  }
   return fetch('http://localhost:8008/api/next-chat/completion/stream', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(prompts)
+    body: JSON.stringify(requestBody)
   });
 }
 
 export { 
   request,
-  completion,
+  completionNonStream,
   completionStream
 };

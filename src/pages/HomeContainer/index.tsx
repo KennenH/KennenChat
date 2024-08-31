@@ -14,7 +14,7 @@ import { CHAT_ERROR_PLACE_HOLDER, CHAT_HOW_CAN_I_HELP_U, CHAT_LIST_KEY } from "@
 import { message } from "antd";
 import { v4 as uuidv4 } from 'uuid';
 import messageStore from "@/store/MessageStore";
-import { completion, completionStream } from "@/utils/request";
+import { completionStream } from "@/utils/request";
 import { CompletionMessage } from "@/utils/type";
 import { observer } from "mobx-react-lite";
 import { inject } from "mobx-react";
@@ -281,6 +281,10 @@ const HomeContainer: React.FC = () => {
         });
       })
       .catch(e => {
+        assistMessage.content = e.message;
+        const updatedChatList = latestChatListRef.current ? _.cloneDeep(latestChatListRef.current) : [createChatCard()];
+        setChatList(updatedChatList);
+
         messageApi.open({
           type: 'error',
           content: '出错了~稍后再试试吧',
