@@ -41,7 +41,7 @@ const createChatCard = (): IChatCardProps => {
  * @param content 消息内容
  * @param sender 发送人
  */
-const createMessage = (
+export const createMessage = (
   content?: string,
   sender?: Sender,
 ): IChatMessage => {
@@ -185,13 +185,21 @@ const HomeContainer: React.FC = () => {
    * 新增的 item 加在数组 index 0 位置
    * 自动选中新增的 item
    */
-  const handleClickNewChat = () => {
+  const handleClickNewChat = async () => {
     if (!chatList) {
       setChatList([createChatCard()]);
       return;
     }
     // 不能用 push 或 unshift，这两个方法会直接修改原数组
-    const newChatList = [createChatCard(), ...chatList];
+    const card = createChatCard();
+
+    // mock data，生成 10000 条聊天记录
+    if (globalStore.isMockingData) {
+      const mockData = await fetchMockData();
+      card.messageList = mockData as IChatMessage[];
+    }
+
+    const newChatList = [card, ...chatList];
     setChatList(newChatList);
     setSelectedIdx(0);
   };
@@ -339,6 +347,27 @@ const HomeContainer: React.FC = () => {
           messageStore.setIsFetchingMsg(false);
         });
     }
+  }
+
+  /**
+   * web worker 创建 10000 条聊天记录
+   * @returns mock data
+   */
+  const fetchMockData = () => {
+    messageApi.open({
+      type: 'info',
+      content: 'Mocking Data...',
+    });
+    return new Promise((resolve, reject) => {
+      const worker = new Worker('./mockworker.ts');
+      worker.onmessage = (event) => {
+        resolve(event.data);
+        worker.terminate();
+      };
+      worker.onerror = (error) => {
+        reject(error);
+      }
+    });
   }
 
   /**

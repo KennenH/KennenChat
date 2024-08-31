@@ -55,6 +55,11 @@ const GlobalStore = types
      * 是否解析 markdown
      */
     isParseMarkdown: types.optional(types.boolean, true),
+
+    /**
+     * 若是，则后续的新的聊天将生成一个具有 10000 条消息的聊天
+     */
+    isMockingData: types.optional(types.boolean, false),
   })
   .actions((self) => ({
     setDarkMode(value: boolean) {
@@ -87,6 +92,9 @@ const GlobalStore = types
     setPenaltyScore(score: number) {
       self.penalty_score = score;
     },
+    setIsMockingData(mock: boolean) {
+      self.isMockingData = mock;
+    },
     loadConfigFromStorage: flow(function* () {
       const config = yield localforage.getItem("appConfig");
       if (config) {
@@ -99,6 +107,7 @@ const GlobalStore = types
         self.temperature = config.temperature;
         self.top_p = config.top_p;
         self.penalty_score = config.penalty_score;
+        self.isMockingData = config.isMockingData
       }
     }),
   }));

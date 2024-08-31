@@ -6,53 +6,50 @@ interface ICMD {
 
 const cmds: ICMD = {
   /**
-   * 切换虚拟列表
+   * 虚拟列表
    */
   ':v': () => {
-    switchVirtual(true);
-  },
-  /**
-   * 切换非虚拟列表
-   */
-  ':nv': () => {
-    switchVirtual(false);
+    switchVirtual(!store.isUseVirtualList);
   },
   /**
    * 静音 ai
    */
-  ':m': () => {
-    muteAi(true);
-  },
-  /**
-   * 解除 ai 静音
-   */
-  ':um': () => {
-    muteAi(false);
+  ':mute': () => {
+    muteAi(!store.isMuteAssistant);
   },
   /**
    * 解析 markdown
    */
   ':p': () => {
-    switchParseMarkdown(true);
+    switchParseMarkdown(!store.isParseMarkdown);
   },
   /**
-   * 不解析 markdown
+   * mock data
    */
-  ':np': () => {
-    switchParseMarkdown(false);
+  ':mock': () => {
+    switchMockData(!store.isMockingData);
   }
 };
 
 const switchVirtual = (virtual: boolean) => {
   store.switchVirtualList(virtual);
+  console.log(`~kennen-tag: cmd executed - 虚拟列表 - enable:${virtual}`);
 }
 
 const muteAi = (mute: boolean) => {
   store.shouldMuteAssistant(mute);
+  console.log(`~kennen-tag: cmd executed - ai 静音 - enable:${mute}`);
+  console.warn(`~kennen-tag: ai 静音之后若在当前聊天发送过消息，则当前聊天将不再可用`);
 }
 
 const switchParseMarkdown = (parse: boolean) => {
   store.shouldParseMarkdown(parse);
+  console.log(`~kennen-tag: cmd executed - 解析 markdown - enable:${parse}`);
+}
+
+const switchMockData = (mock: boolean) => {
+  store.setIsMockingData(mock);
+  console.log(`~kennen-tag: cmd executed - Mock Data - enable:${mock}`);
 }
 
 /**
@@ -60,8 +57,7 @@ const switchParseMarkdown = (parse: boolean) => {
  * @param inputText 命令
  */
 const exeCmd = (inputText: string): boolean => {
-  inputText = inputText.replace('：', ':');
-  const func = cmds[inputText];
+  const func = cmds[inputText.replace('：', ':')]
   func?.();
   return func !== undefined ? true : false;
 }

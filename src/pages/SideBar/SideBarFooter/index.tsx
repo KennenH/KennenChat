@@ -2,6 +2,7 @@ import { Button } from 'antd';
 import './index.scss';
 import { GithubOutlined, PlusCircleOutlined, SettingOutlined } from '@ant-design/icons';
 import { MouseEventHandler } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface ISideBarFooterProps {
   handleClickSetting?: MouseEventHandler,
@@ -10,7 +11,8 @@ interface ISideBarFooterProps {
 
 const handleClickGithub = () => {
   // navigate to outer link github
-
+  const nav = useNavigate()
+  nav('https://github.com/KennenH/NextChat/tree/dev');
 }
 
 const SideBarFooter: React.FC<ISideBarFooterProps> = ({

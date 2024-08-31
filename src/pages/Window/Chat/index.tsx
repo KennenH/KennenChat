@@ -47,14 +47,6 @@ const Chat: React.FC = (
     handleClickSendMessage,
   } = useOutletContext() as IChatProps;
 
-  // const { 
-  //   chatCardProps,
-  //   isFullScreen,
-  //   handleToggleFullScreen,
-  //   handleClickEdit,
-  //   handleClickSendMessage,
-  // } = props;
-
   // 非虚拟列表引用
   const noneVirtualMessageListRef = useRef<HTMLDivElement>(null);
 
@@ -74,10 +66,6 @@ const Chat: React.FC = (
   };
 
   const actionConfigs: WindowHeaderActionConfig[] = [
-    // {
-    //   iconName: 'edit',
-    //   handleClickAction: () => handleClickEdit(),
-    // },
     {
       iconName: isFullScreen ? 'fullscreen-exit' : 'fullscreen',
       handleClickAction: () => handleToggleFullScreen(),
