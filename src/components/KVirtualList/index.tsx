@@ -21,6 +21,7 @@ import Message from '../Message';
 import _, { throttle } from 'lodash';
 import messageStore from '@/store/MessageStore';
 import { inject, observer } from 'mobx-react';
+import globalStore from '@/store/globalStore';
 
 interface IKVirtualListProps {
   chatCardProps: IChatCardProps,
@@ -364,7 +365,7 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
     const startIndex = this.getStartIndex();
     const endIndex = this.getEndIndex(startIndex);
 
-    return [Math.max(0, startIndex - 3), Math.min(endIndex + 3, messageList.length - 1)];
+    return [Math.max(0, startIndex - globalStore.virtualListPreLoad), Math.min(endIndex + globalStore.virtualListPreLoad, messageList.length - 1)];
   }
 
   /**

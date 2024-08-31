@@ -17,6 +17,16 @@ const GlobalStore = types
     isUseVirtualList: types.optional(types.boolean, true),
 
     /**
+     * 前置预加载消息数量
+     */
+    virtualListPreLoad: types.optional(types.integer, 3),
+
+    /**
+     * 后置预加载消息数量
+     */
+    virtualListPostLoad: types.optional(types.integer, 3),
+
+    /**
      * 是否使用流式输出
      */
     isUseStream: types.optional(types.boolean, true),
@@ -24,7 +34,7 @@ const GlobalStore = types
     /**
      * 温度
      */
-    temperature: types.optional(types.number, 0.95),
+    temperature: types.optional(types.number, 0.9),
 
     /**
      * 多样性
@@ -53,6 +63,12 @@ const GlobalStore = types
     switchVirtualList(virtual: boolean) {
       self.isUseVirtualList = virtual;
     },
+    setPreLoadNum(preload: number) {
+      self.virtualListPreLoad = preload;
+    },
+    setPostLoadNum(postload: number) {
+      self.virtualListPostLoad = postload;
+    },
     shouldMuteAssistant(mute: boolean) {
       self.isMuteAssistant = mute;
     },
@@ -76,6 +92,7 @@ const GlobalStore = types
       if (config) {
         self.isDarkMode = config.isDarkMode;
         self.isUseVirtualList = config.isUseVirtualList;
+        self.virtualListPreLoad = config.virtualListPreLoad
         self.isMuteAssistant = config.isMuteAssistant;
         self.isParseMarkdown = config.isParseMarkdown;
         self.isUseStream = config.isUseStream;

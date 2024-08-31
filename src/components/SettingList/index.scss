@@ -1,0 +1,19 @@
+.setting-list-container {
+  border: var(--border-in-light);
+  border-radius: 10px;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 20px;
+  animation: setting-item-slide-in .3s ease;
+  background: var(--white);
+}
+
+@keyframes setting-item-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  } 
+}

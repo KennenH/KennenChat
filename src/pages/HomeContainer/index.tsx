@@ -330,8 +330,6 @@ const HomeContainer: React.FC = () => {
           if (latestChatListRef.current) {
             latestChatListRef.current[selectedIdx].title = '';
             typeTitle(title);
-            // latestChatListRef.current[selectedIdx].title = title;
-            // setChatList([...latestChatListRef.current]);
           }
         })
         .catch(e => {
