@@ -1,5 +1,9 @@
 
 export interface CompletionMessage {
+  /**
+   * 用 Role 包裹 Sender
+   * 例：Role[Sender.User]
+   */
   role: string,
   content: string,
 }

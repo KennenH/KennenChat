@@ -14,11 +14,13 @@ import { CHAT_ERROR_PLACE_HOLDER, CHAT_HOW_CAN_I_HELP_U, CHAT_LIST_KEY } from "@
 import { message } from "antd";
 import { v4 as uuidv4 } from 'uuid';
 import messageStore from "@/store/MessageStore";
-import { completionStream } from "@/utils/request";
+import { completionNonStream, completionStream } from "@/utils/request";
 import { CompletionMessage } from "@/utils/type";
 import { observer } from "mobx-react-lite";
 import { inject } from "mobx-react";
 import globalStore from "@/store/globalStore";
+
+const NEW_CHAT_TITLE = '新的聊天';
 
 /**
  * 初始化时和清空时自动生成一条新的聊天
@@ -29,7 +31,7 @@ import globalStore from "@/store/globalStore";
 const createChatCard = (): IChatCardProps => {
   return ({
     id: uuidv4(),
-    title: '新的聊天',
+    title: NEW_CHAT_TITLE,
     messageList: [createMessage()],
   });
 };
@@ -265,6 +267,7 @@ const HomeContainer: React.FC = () => {
             if (done) {
               messageStore.setIsFetchingMsg(false);
               resolve(); // 流完成后，resolve当前的Promise
+              requestForTitle();
               return;
             }
 
@@ -296,6 +299,66 @@ const HomeContainer: React.FC = () => {
         messageStore.setIsFetchingMsg(false);
       });
   };
+
+  /**
+   * 请求标题
+   */
+  const requestForTitle = () => {
+    if (!latestChatListRef.current) {
+      return;
+    }
+    if (chatList[selectedIdx].title === NEW_CHAT_TITLE) {
+      const titlePrompt = latestChatListRef
+        .current[selectedIdx]
+        .messageList
+        .slice(1)
+        .map(chat => {
+          return {
+            role: Role[chat.sender],
+            content: chat.content,
+          } as CompletionMessage;
+        });
+      titlePrompt.push({
+        role: Role[Sender.USER],
+        content: "请用一句话为当前对话取一个恰当的标题，不超过10个字",
+      } as CompletionMessage);
+
+      messageStore.setIsFetchingMsg(true);
+      completionNonStream(titlePrompt)
+        .then(res => {
+          const title = res.data;
+          if (latestChatListRef.current) {
+            latestChatListRef.current[selectedIdx].title = '';
+            typeTitle(title);
+            // latestChatListRef.current[selectedIdx].title = title;
+            // setChatList([...latestChatListRef.current]);
+          }
+        })
+        .catch(e => {
+          // do nothing
+        })
+        .finally(() => {
+          messageStore.setIsFetchingMsg(false);
+        });
+    }
+  }
+
+  /**
+   * 打字机打印标题
+   */
+  const typeTitle = (title: string, index: number = 0) => {
+    if (index < title.length) {
+      setTimeout(() => {
+        requestAnimationFrame(() => {
+          if (latestChatListRef.current) {
+            latestChatListRef.current[selectedIdx].title += title[index];
+            setChatList([...latestChatListRef.current]);
+            typeTitle(title, index + 1);
+          }
+        });
+      }, 150);
+    }
+  }
 
   /**
    * 二级路由 chat 参数
