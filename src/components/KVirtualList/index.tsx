@@ -7,6 +7,12 @@
  *    - 对于在任意位置的子 item，都可以通过它下方的子 item 的偏移和高度相加进行计算
  *    
  *    -> 列表在往上滚动的过程中计算沿途的子 item 的 bottom 和高度，并作为后续子 item 的位置计算的基础
+ * 
+ * 0831 bugfix: 由于虚拟列表高度计算为自下而上，气泡组件仅设置了 bottom，当消息气泡的高度更改时才会通知父组件撑开滚动条
+ * 导致子组件变高时以底部为基准向上生长，通知父组件更新后上边缘才回到原来的位置，视觉效果就是消息气泡上下跳动
+ * 
+ * refactor：将虚拟列表高度计算顺序更改为自顶向下，气泡以顶部为基准向下生长
+ * 可能产生的问题：最新消息的位置可能由于计算问题不准确
  */
 import React, { RefObject } from 'react';
 import './index.scss';
@@ -25,12 +31,13 @@ interface ListVirtualHeights {
 }
 
 /**
- * 子 item 的测量数据
+ * 对应聊天的子 item 的测量数据
+ * item 测量数据未初始化时为空，通过 {@link KVirtualList.getMesuredData[i]} 访问对应的 item 测量数据
  */
-interface MeasuredItem {
+interface MeasuredItems {
   /**
    * height：子 item 的真实高度
-   * offset：bottom 偏移量
+   * 0831 refactor: offset 更改为 top 的偏移量
    */
   [key: number]: { height: number, offset: number }
 }
@@ -49,18 +56,20 @@ interface MeasuredDataInfos {
 export interface MeasuredDataInfo {
   /**
    * 当前聊天所有已测量的子 item 缓存数据
+   * 必须通过调用 {@link KVirtualList.getMesuredData} 访问对应的 item 的测量数据
+   * 如果在 {@link KVirtualList.getMesuredData} 之外访问可能会直接报错
    */
-  measuredItem: MeasuredItem,
+  measuredItems: MeasuredItems,
 
   /**
-   * 当前聊天最上方的（最旧的）已经测量的子 item 的下标
+   * 0831 refactor：当前聊天最下方的（最新的）已经测量的子 item 的下标
    */
-  topMostMeasuredIndex: number,
+  bottomMostMeasuredIndex: number,
 }
 
 /**
  * 已经计算好的子 item 的信息
- * 调用 {@link useMeasuredDataInfo} 来访问，不要直接访问！！！
+ * 调用 {@link KVirtualList.useMeasuredDataInfo} 访问，不要直接访问！！！
  */
 const measuredDataInfos: MeasuredDataInfos = {};
 
@@ -109,6 +118,8 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
       /**
        * 聊天记录需从底部开始滑动
        * 因此滑动过的距离应该是：列表总高度 H - scrollTop - 可视窗口高度 height
+       * 
+       * 0831 refactor：聊天记录从顶部开始滑动，滑动距离直接取 scrollTop
        */ 
       scrolledOffset: 0,
     }
@@ -137,7 +148,7 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
       const nowLen = messageList.length;
       // 有新消息时：更新虚拟列表高度和测量数据
       if (nextLen > nowLen) {
-        this.updateOnNewMessage(nextId, nextMessageList.length, nextLen - nowLen);
+        // this.updateOnNewMessage(nextId, nextMessageList.length, nextLen - nowLen);
       } else {
         // todo 删除消息后更新虚拟列表高度和测量数据
       }
@@ -220,8 +231,8 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
       // 返回函数可以接收一个 itemCount 参数
       if (!measuredDataInfos[chatId]) {
         measuredDataInfos[chatId] = {
-          measuredItem: {},
-          topMostMeasuredIndex: -1,
+          measuredItems: {},
+          bottomMostMeasuredIndex: -1,
         };
       }
       return measuredDataInfos[chatId];
@@ -234,104 +245,108 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
    * 1. 更新虚拟列表的虚拟高度
    * 2. 更新下标为 index 的 item 的高度
    * 3. 将从 index 开始到最底部（最新）消息的偏移进行更正
+   * 
+   * @param index 当前更新的子 item 的下标
+   * @param offsetHeight 子 item 更新后的高度
    */
   private onChildSizeChanged = (
     index: number, 
     offsetHeight: number,
-    measuredDataInfo: MeasuredDataInfo, 
-    messages?: IChatMessage[],
   ) => {
-    if (!messages) {
+    const { chatCardProps: { messageList, id } } = this.props;
+    if (!messageList) {
       return;
     }
-    const { measuredItem, topMostMeasuredIndex } = measuredDataInfo;
+    const measuredDataInfo = this.useMeasuredDataInfo[id];
+    const { bottomMostMeasuredIndex } = measuredDataInfo;
     const { chatCardProps: { id: chatCardId } } = this.props;
+    const measuredItem = this.getMesuredData(index);
+    
+    // 如果滚动到底部了，那么可以直接确定虚拟列表的最终虚拟高度
     const { listVirtualHeights } = this.state;
-
     const newListVirtualHeights = {...listVirtualHeights};
-    // 如果滚动到顶部了，那么可以直接确定虚拟列表的最终虚拟高度
-    if (topMostMeasuredIndex === 0) {
-      const { height, offset } = measuredItem[0];
+    if (bottomMostMeasuredIndex === messageList.length - 1) {
+      const { height, offset } = this.getMesuredData(messageList.length - 1);
       newListVirtualHeights[chatCardId] = height + offset;
     } else {
       // 每渲染一个子 item 都更新虚拟高度
-      newListVirtualHeights[chatCardId] += offsetHeight - measuredItem[index].height;
+      newListVirtualHeights[chatCardId] += offsetHeight - measuredItem.height;
     }
 
-    // 更新下标为 index 的 item 的高度    
-    measuredItem[index].height = offsetHeight;
-    // 更新从 topMostMeasuredIndex 开始到最新消息的偏移
-    let offset = 0;
-    for (let i = messages.length - 1; i >= topMostMeasuredIndex; i--) {
-      const itemData = measuredItem[i];
-      itemData.offset = offset;
-      offset += itemData.height;
+    // 更新测量数据中当前 item 的高度
+    measuredItem.height = offsetHeight;
+    // 0831 refactor：以上边缘为基准向下生长，top 不变，所以只对下方所有 item 有影响，对上方 item 无影响
+    // 更新从当前 item 的下一个 item 到最新消息的偏移
+    const thisItem = measuredItem;
+    let offset = thisItem.offset + thisItem.height;
+    for (let i = index + 1; i < messageList.length; i++) {
+      const itemMeasuredData = this.getMesuredData(i);
+      itemMeasuredData.offset = offset;
+      offset += itemMeasuredData.height;
     }
 
     requestAnimationFrame(() => {
-      if (listVirtualHeights[chatCardId] <= newListVirtualHeights[chatCardId]) {
-        this.setState({ listVirtualHeights: newListVirtualHeights });
-      }
+      this.setState({ listVirtualHeights: newListVirtualHeights });
     });
+  }
+
+  /**
+   * 根据列表可视高度和第一条要渲染的数据获取最下方要渲染的 item 的下标
+   * 
+   * @param startIndex 第一条要渲染的记录，{@link getStartIndex(number)} 返回值
+   * @returns 最后一条要渲染的记录，即最下方的聊天记录
+   */
+  private getEndIndex = (startIndex: number) => {
+    const { listRealHeight } = this.state;
+    const { chatCardProps: { messageList } } = this.props;
+    const startItemMeasuredData = this.getMesuredData(startIndex);
+    const maxVisibleOffset = startItemMeasuredData.offset + listRealHeight;
+    let offset = startItemMeasuredData.offset + startItemMeasuredData.height;
+    let endIndex = startIndex;
+
+    while (
+      offset <= maxVisibleOffset 
+      && endIndex < messageList.length
+    ) {
+      endIndex++;
+      offset += this.getMesuredData(endIndex).height;
+    }
+
+    return endIndex;
   }
 
   /**
    * 获取需要渲染的最上方 item 的 index
    * 
-   * @param listRealheight 聊天框高度，用于计算聊天框中可以放多少个气泡
-   * @param endIndex {@link getEndIndex(number)} 返回值
-   * @returns 第一条要渲染的记录，即最上面一条聊天记录
+   * @returns 当前窗口中第一条要渲染的聊天记录，即最上方的一条
    */
   private getStartIndex = (
-    listRealheight: number, 
-    endIndex: number, 
-    measuredDataInfo: MeasuredDataInfo
   ) => {
-    const bottomMostItem = this.getMesuredData(endIndex, measuredDataInfo);
-    const maxVisibleOffset = bottomMostItem.offset + listRealheight;
-    let offset = bottomMostItem.offset + bottomMostItem.height;
-    let startIndex = endIndex;
-    while (
-      offset <= maxVisibleOffset 
-      && startIndex > 0
-    ) {
-      startIndex--;
-      offset += this.getMesuredData(startIndex, measuredDataInfo).height;
-    }
-    return startIndex;
-  }
+    const { chatCardProps: { messageList, id } } = this.props;
+    const measuredDataInfo = this.useMeasuredDataInfo[id];
+    const itemCount = messageList.length;
 
-  /**
-   * 获取需要渲染的最下方 item 的 index
-   * 
-   * @param scrolledOffset 从下往上已经滚动的距离
-   * @returns 当前窗口中最后一条要渲染的聊天记录，即最底下的一条
-   */
-  private getEndIndex = (
-    itemCount: number, 
-    scrolledOffset: number, 
-    measuredDataInfo: MeasuredDataInfo
-  ) => {
-    // 如果为初始化的 index，那么 end index 就是最后一条消息
-    if (measuredDataInfo.topMostMeasuredIndex === -1) {
-      measuredDataInfo.topMostMeasuredIndex = itemCount;
-      return itemCount - 1;
+    // 如果为初始化的 index，那么第一条要渲染的 index 就是 0
+    if (measuredDataInfo.bottomMostMeasuredIndex === -1) {
+      return 0;
     } else {
-      for (let i = itemCount - 1; ; i--) {
-        const offset = this.getMesuredData(i, measuredDataInfo).offset;
+      const { scrolledOffset } = this.state;
+      for (let i = 0; ; i++) {
+        const offset = this.getMesuredData(i).offset;
         if (offset >= scrolledOffset) {
           return i;
         }
-        if (i <= 0) {
-          return 0;
+        if (i >= itemCount - 1) {
+          return itemCount - 1;
         }
       }
     }
   }
 
   /**
-   * 根据屏幕上已经渲染过的气泡取平均来估算整个列表的长度
+   * 获取 item 初始化高度
    * 
+   * @todo 以屏幕上已经渲染过的 item 高度取平均来预估
    * 1. 如果是 gpt 的输出，一般高度值比较大，用户输入值一般比较小
    * 2. 可以根据聊天气泡内的字数来估算高度
    */
@@ -342,50 +357,48 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
   /**
    * 获取虚拟列表真正需要渲染的数据的 index
    * 
-   * @param itemCount 整个聊天记录的总记录条数
-   * @param listRealheight 聊天框的真实高度
-   * @param scrolledOffset 当前已经滚动过的距离
-   * 
    * @returns 当前滚动窗口下实际需要渲染的子 item 的开始和结束下标
    */
-  private getRenderIndex = (
-    itemCount: number, 
-    listRealheight: number, 
-    scrolledOffset: number, 
-    measuredDataInfo: MeasuredDataInfo
-  ) => {
-    const endIndex = this.getEndIndex(itemCount, scrolledOffset, measuredDataInfo);
-    const startIndex = this.getStartIndex(listRealheight, endIndex, measuredDataInfo);
-    return [Math.max(0, startIndex - 3), Math.min(itemCount - 1, endIndex + 3)];
+  private getRenderIndex = () => {
+    const { chatCardProps: { messageList } } = this.props;
+    const startIndex = this.getStartIndex();
+    const endIndex = this.getEndIndex(startIndex);
+
+    return [Math.max(0, startIndex - 3), Math.min(endIndex + 3, messageList.length - 1)];
   }
 
   /**
    * 获取对应下标的 item 高度和偏移
    * 
    * @param index 要获取测量数据的子 item 的下标
-   * @returns 对应下标的子 item 的测量数据 {@link MeasuredItem}
+   * @returns 对应下标的子 item 的测量数据 {@link MeasuredItems}
    */
-  private getMesuredData = (
-    index: number, 
-    measuredDataInfo: MeasuredDataInfo
-  ) => {
-    const { measuredItem } = measuredDataInfo;
-    let { topMostMeasuredIndex } = measuredDataInfo;
-    if (index < topMostMeasuredIndex) {
+  private getMesuredData = (index: number) => {
+    const { chatCardProps: { id } } = this.props;
+    const measuredDataInfo = this.useMeasuredDataInfo[id];
+    const { measuredItems, bottomMostMeasuredIndex } = measuredDataInfo;
+    
+    // 如果是 bottom most 下方的 item，则需要测量
+    // 否则，说明已经测量过，直接返回
+    if (index > bottomMostMeasuredIndex) {
       let offset = 0;
-      const topMostMeasuredItem = measuredItem?.[topMostMeasuredIndex];
-      if (topMostMeasuredItem) {
-        offset += topMostMeasuredItem.offset + topMostMeasuredItem.height;
+      const bottomMostMeasuredItem = measuredItems?.[bottomMostMeasuredIndex];
+      if (bottomMostMeasuredItem) {
+        offset += bottomMostMeasuredItem.offset + bottomMostMeasuredItem.height;
       }
-      // 从下到上计算没有被测量的 item 的位置
-      for (let i = topMostMeasuredIndex - 1; i >= index; i--) {
-        const height = this.getEstimatedItemHeight();
-        measuredItem[i] = { height, offset };
-        offset += height;
+
+      // 从上到下计算没有被测量的 item 的位置
+      const initHeight = this.getEstimatedItemHeight();
+      for (let i = bottomMostMeasuredIndex + 1; i <= index; i++) {
+        measuredItems[i] = { height: initHeight, offset };
+        offset += initHeight;
       }
-      measuredDataInfo.topMostMeasuredIndex = index;
+
+      // 将最新测量的 item 下标更新为当前 index
+      measuredDataInfo.bottomMostMeasuredIndex = index;
     }
-    return measuredItem[index];
+
+    return measuredItems[index];
   }
 
   /**
@@ -405,26 +418,25 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
     const estimatedHeight = this.getEstimatedItemHeight();
 
     // 将新消息的预估高度和偏移量放入测量数据
-    // 这一步是保证虚拟列表动态添加后能够在渲染的任何时候获取到子组件测量数据的关键
-    const measuredItem = measuredDataInfo.measuredItem;
+    // 这一步是保证虚拟列表动态添加后能够在任何时候获取到子组件测量数据的关键
+    const measuredItems = measuredDataInfo.measuredItems;
     
-    // 从最新一条消息更新至 topMost，分两段更新
-    // 1. 新增消息预估测量数据：只更新新增部分的消息 
+    // 从 bottomMost 更新至最新添加的消息
     let offset = 0;
-    // 两段更新分界点，算在已有数据中，所以在第二段更新
     const latestOldMessageIdx = itemCount - 1 - countDiff;
+    // 1. 之前已经存在的、但未被测量的数据
+    for (let i = latestOldMessageIdx; i >= measuredDataInfo.bottomMostMeasuredIndex; i--) {
+      measuredItems[i].offset = offset;
+      offset += measuredItems[i].height;
+    }
+
+    // 2. 新增消息预估测量数据：只更新新增部分的消息 
     for (let i = itemCount - 1; i > latestOldMessageIdx; i--) {
-      measuredItem[i] = { 
+      measuredItems[i] = { 
         height: estimatedHeight,
         offset,
       };
       offset += estimatedHeight;
-    }
-    
-    // 2. 已有消息更新测量数据：只更新之前已存在的消息
-    for (let i = latestOldMessageIdx; i >= measuredDataInfo.topMostMeasuredIndex; i--) {
-      measuredItem[i].offset = offset;
-      offset += measuredItem[i].height;
     }
   }
 
@@ -447,25 +459,17 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
    * @returns 需要渲染的 item 的列表
    */
   private getRenderMessageList = () => {
-    const { chatCardProps: { messageList, id } } = this.props;
+    const { chatCardProps: { messageList } } = this.props;
     if (!messageList) {
       return;
     }
-
-    const { listRealHeight, scrolledOffset } = this.state;
-    const measuredDataInfo = this.useMeasuredDataInfo[id];
-    const [startIndex, endIndex] = this.getRenderIndex(
-      messageList.length,
-      listRealHeight,
-      scrolledOffset,
-      measuredDataInfo,
-    );
+    const [startIndex, endIndex] = this.getRenderIndex();
     const renderList = [];
     for (let i = startIndex; i <= endIndex; i++) {
-      const bottom = this.getMesuredData(i, measuredDataInfo).offset;
+      const offset = this.getMesuredData(i).offset;
       const itemStyles = {
         position: 'absolute',
-        bottom: bottom,
+        top: offset,
       };
       renderList.push(
         <Message 
@@ -476,7 +480,7 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
               && messageList[i].sender === Sender.ASSISTANT
               && messageStore.isConnecting
           }
-          onSizeChanged={offsetHeight => this.onChildSizeChanged(i, offsetHeight, measuredDataInfo, messageList)}
+          onSizeChanged={offsetHeight => this.onChildSizeChanged(i, offsetHeight)}
           styles={itemStyles}
         />
       );
@@ -484,14 +488,10 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
     return renderList;
   }
 
-  private rafScroll = () => {
+  private onScroll = () => {
     if (this.virtualListRef.current) {
-      const { listVirtualHeights, listRealHeight } = this.state;
-      const { chatCardProps: { id } } = this.props;
-      const listVirtualHeight = listVirtualHeights[id];
-      this.setState({
-        scrolledOffset: listVirtualHeight - this.virtualListRef.current!.scrollTop - listRealHeight
-      });
+      // 实际上起到一个手动更新 ui 的作用
+      this.setState({ scrolledOffset: this.virtualListRef.current.scrollTop });
     }
   };
 
@@ -501,7 +501,7 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
     return (
       <div 
         className='v-list-container'
-        onScroll={this.rafScroll}
+        onScroll={this.onScroll}
         ref={this.virtualListRef}
       >
         <div
