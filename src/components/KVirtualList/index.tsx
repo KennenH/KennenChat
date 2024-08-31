@@ -56,11 +56,6 @@ export interface MeasuredDataInfo {
    * 当前聊天最上方的（最旧的）已经测量的子 item 的下标
    */
   topMostMeasuredIndex: number,
-
-  /**
-   * 当前聊天虚拟列表的虚拟高度，用于撑开滚动条
-   */
-  // listVirtualHeight: number,
 }
 
 /**
@@ -85,11 +80,14 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
   private virtualListRef: RefObject<HTMLDivElement>;
 
   /**
+   * 外层 div 尺寸改变监听器
+   */
+  private outerDivResizeObserver: ResizeObserver | undefined;
+
+  /**
    * 哑节点 div ref
    */
   private dummyDivRef: RefObject<HTMLDivElement>;
-
-  private outerDivResizeObserver: ResizeObserver | undefined;
 
   constructor(props: IKVirtualListProps) {
     super(props);
@@ -113,7 +111,6 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
        * 因此滑动过的距离应该是：列表总高度 H - scrollTop - 可视窗口高度 height
        */ 
       scrolledOffset: 0,
-
     }
 
     this.virtualListRef = React.createRef();
@@ -141,7 +138,7 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
       // 有新消息时：更新虚拟列表高度和测量数据
       if (nextLen > nowLen) {
         this.updateOnNewMessage(nextId, nextMessageList.length, nextLen - nowLen);
-      } else { // 删除消息时
+      } else {
         // todo 删除消息后更新虚拟列表高度和测量数据
       }
     }
