@@ -398,7 +398,6 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
       measuredDataInfo.bottomMostMeasuredIndex = index;
     }
 
-    console.log(`kennen i=${index}`, measuredItems[index]);
     return measuredItems[index];
   }
 
