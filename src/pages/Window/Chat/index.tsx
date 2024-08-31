@@ -74,10 +74,10 @@ const Chat: React.FC = (
   };
 
   const actionConfigs: WindowHeaderActionConfig[] = [
-    {
-      iconName: 'edit',
-      handleClickAction: () => handleClickEdit(),
-    },
+    // {
+    //   iconName: 'edit',
+    //   handleClickAction: () => handleClickEdit(),
+    // },
     {
       iconName: isFullScreen ? 'fullscreen-exit' : 'fullscreen',
       handleClickAction: () => handleToggleFullScreen(),
