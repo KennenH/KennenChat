@@ -80,8 +80,8 @@ interface IKVirtualListState {
   scrolledOffset: number,
 }
 
-@observer
 @inject('globalStore', 'messageStore')
+@observer
 class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListState> {
 
   /**

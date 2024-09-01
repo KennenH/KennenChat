@@ -328,7 +328,7 @@ const HomeContainer: React.FC = () => {
         });
       titlePrompt.push({
         role: Role[Sender.USER],
-        content: "请用一句话为当前对话取一个恰当的标题",
+        content: "请用一句话为当前对话取一个恰当的标题，给出的文本请不要带其他的话语，你的回答将直接用于展示",
       } as CompletionMessage);
 
       messageStore.setIsFetchingMsg(true);
