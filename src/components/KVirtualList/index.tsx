@@ -403,44 +403,6 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
   }
 
   /**
-   * 当有新消息时更新已经测量过的偏移数据
-   * 
-   * @param chatCardId 聊天 id
-   * @param itemCount 更新后聊天中有多少条聊天记录
-   * @param countDiff 上一次 messageList 和这一次 messageList 的元素多了几个
-   */
-  private updateOnNewMessage = (
-    chatCardId: string, 
-    itemCount: number,
-    countDiff: number,
-  ) => {
-    // 更新虚拟列表的高度，即加上 diif 个新消息的预估高度
-    const measuredDataInfo = this.useMeasuredDataInfo[chatCardId];
-    const estimatedHeight = this.getEstimatedItemHeight();
-
-    // 将新消息的预估高度和偏移量放入测量数据
-    const measuredItems = measuredDataInfo.measuredItems;
-    
-    // 从 bottomMost 更新至最新添加的消息
-    let offset = 0;
-    const latestOldMessageIdx = itemCount - 1 - countDiff;
-    // 1. 之前已经存在的、但未被测量的数据
-    for (let i = latestOldMessageIdx; i >= measuredDataInfo.bottomMostMeasuredIndex; i--) {
-      measuredItems[i].offset = offset;
-      offset += measuredItems[i].height;
-    }
-
-    // 2. 新增消息预估测量数据：只更新新增部分的消息 
-    for (let i = itemCount - 1; i > latestOldMessageIdx; i--) {
-      measuredItems[i] = { 
-        height: estimatedHeight,
-        offset,
-      };
-      offset += estimatedHeight;
-    }
-  }
-
-  /**
    * 虚拟列表滚动至底部
    */
   public scrollToBottom = () => {
