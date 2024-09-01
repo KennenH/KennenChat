@@ -332,15 +332,18 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
       return 0;
     } else {
       const { scrolledOffset } = this.state;
-      for (let i = 0; ; i++) {
-        const offset = this.getMesuredData(i).offset;
-        if (offset >= scrolledOffset) {
-          return i;
-        }
-        if (i >= itemCount - 1) {
-          return itemCount - 1;
+      let start = 0;
+      let end = itemCount - 1;
+      while (start <= end) {
+        const mid = Math.floor((start + end) / 2);
+        const offset = this.getMesuredData(mid).offset;
+        if (offset < scrolledOffset) {
+          start = mid + 1; // 小了往右边找
+        } else {
+          end = mid - 1; // 大了往左边找
         }
       }
+      return start < itemCount ? start : itemCount - 1;
     }
   }
 
