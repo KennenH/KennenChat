@@ -60,6 +60,11 @@ const GlobalStore = types
      * 若是，则后续的新的聊天将生成一个具有 10000 条消息的聊天
      */
     isMockingData: types.optional(types.boolean, false),
+
+    /**
+     * mock data 数量
+     */
+    mockDataNum: types.optional(types.integer, 10000),
   })
   .actions((self) => ({
     setDarkMode(value: boolean) {
@@ -94,6 +99,9 @@ const GlobalStore = types
     },
     setIsMockingData(mock: boolean) {
       self.isMockingData = mock;
+    },
+    setMockDataNum(num: number) {
+      self.mockDataNum = num;
     },
     loadConfigFromStorage: flow(function* () {
       const config = yield localforage.getItem("appConfig");

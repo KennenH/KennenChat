@@ -193,7 +193,7 @@ const HomeContainer: React.FC = () => {
     // 不能用 push 或 unshift，这两个方法会直接修改原数组
     const card = createChatCard();
 
-    // mock data，生成 10000 条聊天记录
+    // mock data
     if (globalStore.isMockingData) {
       const mockData = await fetchMockData();
       card.messageList = mockData as IChatMessage[];
@@ -350,23 +350,28 @@ const HomeContainer: React.FC = () => {
   }
 
   /**
-   * web worker 创建 10000 条聊天记录
+   * web worker 模拟大数据
    * @returns mock data
    */
   const fetchMockData = () => {
     messageApi.open({
       type: 'info',
-      content: 'Mocking Data...',
+      content: 'Web Worker Mocking Data...',
     });
     return new Promise((resolve, reject) => {
-      const worker = new Worker('./mockworker.ts');
+      const worker = new Worker(new URL('./mockworker.js', import.meta.url), { type: 'module' });
       worker.onmessage = (event) => {
         resolve(event.data);
+        messageApi.success({
+          type: 'success',
+          content: `${event.data.length} Messages Mocked`,
+        });
         worker.terminate();
       };
       worker.onerror = (error) => {
         reject(error);
       }
+      worker.postMessage(globalStore.mockDataNum);
     });
   }
 
