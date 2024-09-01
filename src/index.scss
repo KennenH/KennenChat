@@ -1,17 +1,17 @@
 // 定义全局 css 变量
 :root {
-  --theme: light;
-  --white: #fff;
-  --black: #303030;
-  --gray: #fafafa;
+  --theme: dark;
+  --white: #1e1e1e;
+  --black: #bbb;
+  --gray: #151515;
   --primary: #1d93ab;
-  --second: #e7f8ff;
-  --hover-color: #f3f3f3;
-  --bar-color: rgba(0,0,0,.1);
+  --second: #1b262a;
+  --hover-color: #323232;
+  --bar-color: hsla(0,0%,100%,.1);
   --theme-color: var(--gray);
   --shadow: 50px 50px 100px 10px rgba(0,0,0,.1);
   --card-shadow: 0px 2px 4px 0px rgba(0,0,0,.05);
-  --border-in-light: 1px solid #dedede;
+  --border-in-light: 1px solid hsla(0,0%,100%,.192);
 
   // 侧栏宽度
   --side-bar-width: 280px;
@@ -22,20 +22,6 @@
   --full-height: 90vh;
 
   --message-width: 80%;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --theme: dark;
-    --white: #1e1e1e;
-    --black: #bbb;
-    --gray: #151515;
-    --primary: #1d93ab;
-    --second: #1b262a;
-    --hover-color: #323232;
-    --bar-color: hsla(0,0%,100%,.1);
-    --border-in-light: 1px solid hsla(0,0%,100%,.192);
-    --theme-color: var(--gray);
-  }
 }
 
 
