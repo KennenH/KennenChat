@@ -100,14 +100,6 @@
   line-height: 1.5;
   word-wrap: break-word;
   white-space: pre-line;
-
-  & > *:first-child::before {
-    margin-top: 0;
-  }
-
-  & > *:last-child::after {
-    margin-bottom: 0;
-  }
 }
 
 .message-date {

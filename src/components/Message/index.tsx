@@ -82,9 +82,7 @@ const Message: React.FC<IMessageProps> = (
       // 统一替换占位符
     content = content
       .replace(/<uli>([\s\S]*?)<\/uli>/gm, '<li>$1</li>')
-      .replace(/<oli>([\s\S]*?)<\/oli>/gm, '<li>$1</li>')
-      // 去除多余的换行符
-      .replace(/(\r?\n){2,}/g, '\n');
+      .replace(/<oli>([\s\S]*?)<\/oli>/gm, '<li>$1</li>');
 
     return content;
   }
