@@ -16,9 +16,9 @@
  */
 import React, { RefObject } from 'react';
 import './index.scss';
-import { IChatCardProps, IChatMessage, Sender } from '../ChatCard';
+import { IChatCardProps, Sender } from '../ChatCard';
 import Message from '../Message';
-import _, { throttle } from 'lodash';
+import _ from 'lodash';
 import messageStore from '@/store/MessageStore';
 import { inject, observer } from 'mobx-react';
 import globalStore from '@/store/globalStore';

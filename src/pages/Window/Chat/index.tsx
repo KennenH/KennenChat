@@ -4,7 +4,7 @@ import WindowHeader, { WindowHeaderActionConfig, WindowHeaderTitleConfig } from 
 import { IChatCardProps, Sender } from '@/components/ChatCard';
 import Message from '@/components/Message';
 import InputPanel from '@/components/InputPanel';
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import KVirtualList from '@/components/KVirtualList';
 import globalStore from '@/store/globalStore';
 import { inject, observer } from 'mobx-react';
