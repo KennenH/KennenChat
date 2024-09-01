@@ -15,7 +15,7 @@
     "antd": "^5.20.0",
     "axios": "^1.7.3",
     "classnames": "^2.5.1",
-    "highlight.js": "^11.10.0",
+    "highlight.js": "^11.8.0",
     "localforage": "^1.10.0",
     "lodash": "^4.17.21",
     "mobx": "^6.13.1",
