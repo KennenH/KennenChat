@@ -20,7 +20,7 @@ interface MockArgs {
 const cmds: ICMD = {
 
   ':v': {
-    desc: '虚拟列表切换',
+    desc: '是否使用虚拟列表',
     fun: () => switchVirtual(!store.isUseVirtualList),
   },
 
@@ -30,12 +30,12 @@ const cmds: ICMD = {
   },
 
   ':p': {
-    desc: '切换解析 Markdown',
+    desc: '是否解析 Markdown',
     fun: () => switchParseMarkdown(!store.isParseMarkdown),
   },
 
   ':mock': {
-    desc: '切换 MockData',
+    desc: '开启之后点击\'新的聊天\'将生成指定数量的消息',
     fun: function (args: MockArgs) {
       switchMockData(args?.n)
     },
@@ -45,7 +45,7 @@ const cmds: ICMD = {
   },
 
   ':h': {
-    desc: '帮的并不是很助',
+    desc: '帮的并不是很助，ctrl + s 保存聊天记录',
     fun: () => {
       outputHelp();
     }

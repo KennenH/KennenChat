@@ -133,6 +133,7 @@ const Setting: React.FC<ISettingProps> = () => {
       />
       <div className='setting-container'>
         {initSettingListConfigs()}
+        <div className='setting-info'>输入 :h 在控制台查看更多<span className='setting-mimi'>(并不是很多)</span>帮助</div>
       </div>
     </>
   );
