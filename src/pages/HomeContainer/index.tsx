@@ -108,7 +108,6 @@ const HomeContainer: React.FC = () => {
       .getItem(CHAT_LIST_KEY)
       .then(chatData => {
         if (chatData) {
-          console.log('聊天记录加载成功', chatData);
           setChatList(chatData as IChatCardProps[]);
         } else {
           setChatList(initialChatList);
@@ -130,7 +129,6 @@ const HomeContainer: React.FC = () => {
         localforage
           .setItem(CHAT_LIST_KEY, chatList)
           .then(() => {
-            console.log('聊天记录保存成功', chatList);
             messageApi.open({
               type: 'success',
               content: '聊天记录保存成功',
@@ -300,7 +298,7 @@ const HomeContainer: React.FC = () => {
           type: 'error',
           content: '出错了~稍后再试试吧',
         });
-        console.log('completion stream error', e);
+        console.log(e);
       })
       .finally(() => {
         messageStore.setIsConnecting(false);

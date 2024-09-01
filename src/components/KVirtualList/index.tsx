@@ -134,28 +134,6 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
     this.initListVirtualHeights();
   }
 
-  UNSAFE_componentWillReceiveProps(
-    nextProps: Readonly<IKVirtualListProps>, 
-    nextContext: any
-  ): void {
-    const { chatCardProps: { messageList, id } } = this.props;
-    const { messageList: nextMessageList, id: nextId } = nextProps.chatCardProps;
-    if (
-      nextMessageList 
-      && id === nextId 
-      && nextMessageList !== messageList
-    ) {
-      const nextLen = nextMessageList.length;
-      const nowLen = messageList.length;
-      // 有新消息时：更新虚拟列表高度和测量数据
-      if (nextLen > nowLen) {
-        // this.updateOnNewMessage(nextId, nextMessageList.length, nextLen - nowLen);
-      } else {
-        // todo 删除消息后更新虚拟列表高度和测量数据
-      }
-    }
-  }
-
   componentDidUpdate(
     prevProps: Readonly<IKVirtualListProps>, 
     prevState: Readonly<IKVirtualListState>, 
