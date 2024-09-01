@@ -60,9 +60,9 @@ const Message: React.FC<IMessageProps> = (
       // 粗体 (**text**)
       .replace(/(\*\*)(.*?)\1/g, '<strong>$2</strong>')
       // 封闭代码块，中间必须还要加一个 \s，否则第一行的换行符不会被去掉
-      .replace(/```(\w*)\s*([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+      .replace(/^```(\w*)\s*([\s\S]*?)```/gm, '<pre><code>$2</code></pre>')
       // 未封闭代码块, ``` 之后的所有文字都视为代码 
-      .replace(/```(\w*)\s*([\s\S]*)/g, '<pre><code>$2</code></pre>')
+      .replace(/^```(\w*)\s*([\s\S]*)/gm, '<pre><code>$2</code></pre>')
       // 内联代码/标签 (`text`)
       .replace(/`([^`]+)`/g, '<code class=\'message-markdown-inline-code\'>$1</code>')
       // 有序列表 (1. )

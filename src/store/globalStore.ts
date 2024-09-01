@@ -65,6 +65,13 @@ const GlobalStore = types
      * mock data 数量
      */
     mockDataNum: types.optional(types.integer, 10000),
+
+    /**
+     * mock data 类型
+     * s：简单类型 10000 个左右可使非虚拟列表卡死，默认
+     * c：复杂类型
+     */
+    mockDataType: types.optional(types.string, 's'),
   })
   .actions((self) => ({
     setDarkMode(value: boolean) {
@@ -103,6 +110,9 @@ const GlobalStore = types
     setMockDataNum(num: number) {
       self.mockDataNum = num;
     },
+    setMockDataType(t: string) {
+      self.mockDataType = t;
+    },
     loadConfigFromStorage: flow(function* () {
       const config = yield localforage.getItem("appConfig");
       if (config) {
@@ -116,6 +126,7 @@ const GlobalStore = types
         self.top_p = config.top_p;
         self.penalty_score = config.penalty_score;
         self.isMockingData = config.isMockingData
+        self.mockDataType = config.mockDataType
       }
     }),
   }));

@@ -326,7 +326,7 @@ const HomeContainer: React.FC = () => {
         });
       titlePrompt.push({
         role: Role[Sender.USER],
-        content: "请用一句话为当前对话取一个恰当的标题，给出的文本请不要带其他的话语，你的回答将直接用于展示",
+        content: "请用一句话为当前对话取一个恰当的标题，给出的文本请不要携带前缀，直接给出标题文字即可，你的回答将直接用于展示",
       } as CompletionMessage);
 
       messageStore.setIsFetchingMsg(true);
@@ -357,7 +357,7 @@ const HomeContainer: React.FC = () => {
       content: 'Web Worker Mocking Data...',
     });
     return new Promise((resolve, reject) => {
-      const worker = new Worker(new URL('./mockworker.js', import.meta.url), { type: 'module' });
+      const worker = new Worker(new URL('./mockworker.js', import.meta.url));
       worker.onmessage = (event) => {
         resolve(event.data);
         messageApi.success({
@@ -369,7 +369,7 @@ const HomeContainer: React.FC = () => {
       worker.onerror = (error) => {
         reject(error);
       }
-      worker.postMessage(globalStore.mockDataNum);
+      worker.postMessage({ n: globalStore.mockDataNum, t: globalStore.mockDataType });
     });
   }
 

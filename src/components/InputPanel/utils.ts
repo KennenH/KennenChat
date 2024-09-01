@@ -14,7 +14,8 @@ interface ParsedCMD {
 }
 
 interface MockArgs {
-  n?: string
+  n?: string,
+  t?: string,
 }
 
 const cmds: ICMD = {
@@ -37,15 +38,16 @@ const cmds: ICMD = {
   ':mock': {
     desc: '开启之后点击\'新的聊天\'将生成指定数量的消息',
     fun: function (args: MockArgs) {
-      switchMockData(args?.n)
+      switchMockData(args)
     },
     argsDesc: {
-      'n': '指定要 Mock 的数量，默认为 10000'
+      'n': '指定要 Mock 的数量，正整数，默认为 10000',
+      't': '指定要 Mock 的消息类型，s: 简单类型，c：复杂类型，默认为 s'
     }
   },
 
   ':h': {
-    desc: '帮的并不是很助，ctrl + s 保存聊天记录',
+    desc: '帮助 (ctrl + s 保存聊天记录)',
     fun: () => {
       outputHelp();
     }
@@ -59,7 +61,7 @@ const switchVirtual = (virtual: boolean) => {
 
 const muteAi = (mute: boolean) => {
   store.shouldMuteAssistant(mute);
-  console.log(`~kennen-tag: CMD executed - ai 静音，静音后若发送消息该聊天将不再可用 - Enabled:${mute}`);
+  console.log(`~kennen-tag: CMD executed - 独角戏，ai 静音后若发送消息该聊天将不再可用 - Enabled:${mute}`);
 }
 
 const switchParseMarkdown = (parse: boolean) => {
@@ -67,14 +69,22 @@ const switchParseMarkdown = (parse: boolean) => {
   console.log(`~kennen-tag: CMD executed - 解析 markdown - Enabled:${parse}`);
 }
 
-const switchMockData = (num?: string) => {
-  if (num) {
+const switchMockData = (args: MockArgs) => {
+  const { n: num, t: type } = args;
+  if (num && type) {
     store.setIsMockingData(true);
     store.setMockDataNum(Number(num));
+    store.setMockDataType(type);
+  } else if (num) {
+    store.setIsMockingData(true);
+    store.setMockDataNum(Number(num));
+  } else if (type) {
+    store.setIsMockingData(true);
+    store.setMockDataType(type);
   } else {
     store.setIsMockingData(!store.isMockingData);
   }
-  console.log(`~kennen-tag: CMD executed - Mock Data - Enabled:${store.isMockingData} - Num:${num ?? store.mockDataNum}`);
+  console.log(`~kennen-tag: CMD executed - Mock Data - Enabled:${store.isMockingData} - Num:${num ?? store.mockDataNum} - Type:${type ?? store.mockDataType}`);
 }
 
 const outputHelp = () => {
@@ -84,9 +94,9 @@ const outputHelp = () => {
       const { desc, argsDesc } = cmds[key];  
       let paramsInfo = '';
       for (let p in argsDesc) {
-        paramsInfo += `[-${p}: ${argsDesc?.[p] ?? ''}]`
+        paramsInfo += `\n\t[-${p}: ${argsDesc?.[p] ?? ''}]`
       }
-      helpInfo.push(`${key} ${paramsInfo ? `${paramsInfo}` : ''} ${desc}。`);  
+      helpInfo.push(`${key}  ${desc}。${paramsInfo ?? ''}`);  
     }  
   }
   console.log(helpInfo.join('\n\n'));
