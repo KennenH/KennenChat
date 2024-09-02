@@ -150,7 +150,14 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
 
       this.initListVirtualHeights();
     } else if (messageList !== prevMessageList) { // 同一个聊天消息更新
-      if (messageStore.isFetchingMsg) {
+      const { listVirtualHeights, scrolledOffset, listRealHeight } = this.state;
+      const isViewWindowAtBottom = (listVirtualHeights[id] - scrolledOffset - listRealHeight) < 100;
+      // 若正在获取输出 && 滚动条接近底部
+      // 或有新增消息，则自动滚动至底部
+      const shouldScrollBottom = 
+        (messageStore.isFetchingMsg && isViewWindowAtBottom) 
+        || (prevMessageList.length < messageList.length);
+      if (shouldScrollBottom) {
         requestAnimationFrame(() => {
           this.scrollToBottom();
         });
