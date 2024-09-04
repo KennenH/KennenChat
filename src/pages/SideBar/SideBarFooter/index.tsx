@@ -10,7 +10,7 @@ interface ISideBarFooterProps {
 
 const handleClickGithub = () => {
   // navigate to outer link github
-  window.location.href = 'https://github.com/KennenH/NextChat/tree/dev';
+  window.location.href = 'https://github.com/KennenH/fe.KennenChat';
 }
 
 const SideBarFooter: React.FC<ISideBarFooterProps> = ({
