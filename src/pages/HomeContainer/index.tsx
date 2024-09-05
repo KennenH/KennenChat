@@ -270,10 +270,6 @@ const HomeContainer: React.FC = () => {
         const reader = res.body?.getReader();
         return new Promise<void>((resolve, reject) => {
           const OUT_LENGTH = 4; // 每次输出字符/单词个数
-          let lastChunkTime = Date.now();
-          let weightedDelayPerChar = 10; // 每字符/单词时延 ms
-          // let totalChunkReceiveDelay = 0;
-          // let receiveChunks = 0;
 
           // 接收并处理 chunk
           const processChunk = ({ done, value }: any) => {
@@ -283,19 +279,11 @@ const HomeContainer: React.FC = () => {
               requestForTitle();
               return;
             }
-
-            // 记录 chunk 到达间隔，用于动态计算输出延迟
-            // const currentTime = Date.now();
-            // const timeSinceLastChunk = currentTime - lastChunkTime;
-            // lastChunkTime = currentTime;
             
             // 解码当前的 chunk
             const chunk = decoder.decode(value, { stream: true });
             // 将 chunk 分割为一个单词或一个汉字
             const characters = chunk.split(/(?=[\s\S])/u);
-
-            // 更新加权时延，最近一次接收 chunk 延时权重为 0.5，每前进一次权重减半
-            // weightedDelayPerChar = (weightedDelayPerChar + (timeSinceLastChunk / characters.length)) / 2;
 
             // 异步递归输出流
             // 需要的动态参数：1. 输出字符长度；2. 流输出延时
@@ -325,8 +313,6 @@ const HomeContainer: React.FC = () => {
             asyncRecursiveOutStream();
           }
 
-          // 在读取下一个 chunk 之前更新 lastChunkTime
-          // lastChunkTime = Date.now();
           // 开始读取 chunk
           reader!.read().then(processChunk).catch(reject);
         });
