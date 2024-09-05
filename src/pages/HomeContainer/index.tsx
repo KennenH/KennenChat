@@ -269,7 +269,14 @@ const HomeContainer: React.FC = () => {
 
         const reader = res.body?.getReader();
         return new Promise<void>((resolve, reject) => {
-          function processText({ done, value }: any) {
+          const OUT_LENGTH = 4; // 每次输出字符/单词个数
+          let lastChunkTime = Date.now();
+          let weightedDelayPerChar = 10; // 每字符/单词时延 ms
+          // let totalChunkReceiveDelay = 0;
+          // let receiveChunks = 0;
+
+          // 接收并处理 chunk
+          const processChunk = ({ done, value }: any) => {
             if (done) {
               messageStore.setIsFetchingMsg(false);
               resolve(); // 流完成后，resolve当前的Promise
@@ -277,16 +284,51 @@ const HomeContainer: React.FC = () => {
               return;
             }
 
+            // 记录 chunk 到达间隔，用于动态计算输出延迟
+            // const currentTime = Date.now();
+            // const timeSinceLastChunk = currentTime - lastChunkTime;
+            // lastChunkTime = currentTime;
+            
+            // 解码当前的 chunk
             const chunk = decoder.decode(value, { stream: true });
-            gptMessage += chunk;
-            assistMessage.content = gptMessage;
+            // 将 chunk 分割为一个单词或一个汉字
+            const characters = chunk.split(/(?=[\s\S])/u);
 
-            const updatedChatList = latestChatListRef.current ? _.cloneDeep(latestChatListRef.current) : [createChatCard()];
-            setChatList(updatedChatList);
+            // 更新加权时延，最近一次接收 chunk 延时权重为 0.5，每前进一次权重减半
+            // weightedDelayPerChar = (weightedDelayPerChar + (timeSinceLastChunk / characters.length)) / 2;
 
-            reader!.read().then(processText).catch(reject); 
+            // 异步递归输出流
+            // 需要的动态参数：1. 输出字符长度；2. 流输出延时
+            const asyncRecursiveOutStream = (index = 0) => {
+              if (index < characters.length) {
+                // 剩余长度足够那就输出，否则剩余多少输出多少
+                const actualOutputLength = Math.min(OUT_LENGTH, characters.length - index);
+                // const delay = weightedDelayPerChar * actualOutputLength;
+
+                const outputChunk = characters.slice(index, index + actualOutputLength).join('');
+                gptMessage += outputChunk;
+                assistMessage.content = gptMessage;
+
+                // 更新 UI
+                requestAnimationFrame(() => {
+                  const updatedChatList = latestChatListRef.current ? _.cloneDeep(latestChatListRef.current) : [createChatCard()];
+                  setChatList(updatedChatList);
+                });
+
+                // 使用 setTimeout 递归调用下一个片段
+                setTimeout(() => asyncRecursiveOutStream(index + actualOutputLength), 100);
+              } else {
+                reader!.read().then(processChunk).catch(reject);
+              }
+            }
+
+            asyncRecursiveOutStream();
           }
-          reader!.read().then(processText).catch(reject); 
+
+          // 在读取下一个 chunk 之前更新 lastChunkTime
+          // lastChunkTime = Date.now();
+          // 开始读取 chunk
+          reader!.read().then(processChunk).catch(reject);
         });
       })
       .catch(e => {
@@ -326,16 +368,18 @@ const HomeContainer: React.FC = () => {
         });
       titlePrompt.push({
         role: Role[Sender.USER],
-        content: "请用一句话为当前对话取一个恰当的标题，给出的文本请不要携带前缀，直接给出标题文字即可，你的回答将直接用于展示",
+        content: "请用一句话为当前对话取一个恰当的标题，回答不能包含任何前缀，请直接给出标题文字",
       } as CompletionMessage);
 
       messageStore.setIsFetchingMsg(true);
       completionNonStream(titlePrompt)
         .then(res => {
-          const title = res.data;
+          const title: string = res.data;
+          const i = title.indexOf('：');
+          const idx = i === -1 ? title.indexOf(':') : i;
           if (latestChatListRef.current) {
             latestChatListRef.current[selectedIdx].title = '';
-            typeTitle(title);
+            typeTitle(title.substring(i + 1));
           }
         })
         .catch(e => {
@@ -374,7 +418,7 @@ const HomeContainer: React.FC = () => {
   }
 
   /**
-   * 打字机打印标题
+   * 异步递归模拟打字机打印标题
    */
   const typeTitle = (title: string, index: number = 0) => {
     if (index < title.length) {
@@ -437,13 +481,6 @@ const HomeContainer: React.FC = () => {
             // 将当前选中的 chat card 进行传递
             context={chatParam}
           />
-          {/* <Chat
-            chatCardProps={chatList[selectedIdx]}
-            isFullScreen={isFullScreen}
-            handleToggleFullScreen={handleToggleFullScreen}
-            handleClickEdit={handleClickEdit}
-            handleClickSendMessage={handleClickSendMessage}
-          /> */}
         </div>
 
         {/* 弹窗区域 */}
