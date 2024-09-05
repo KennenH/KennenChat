@@ -30,6 +30,19 @@ const completionNonStream = (messages: CompletionMessage[]) => {
 }
 
 /**
+ * 获取对话标题
+ */
+const getChatTitle = (messages: CompletionMessage[]) => {
+  const requestBody: CompletionBody = {
+    messages,
+    temperature: globalStore.temperature,
+    top_p: globalStore.top_p,
+    penalty_score: globalStore.penalty_score,
+  }
+  return request.post('/api/next-chat/completion/title', requestBody);
+}
+
+/**
  * 流式响应
  */
 const completionStream = (messages: CompletionMessage[]) => {
@@ -51,5 +64,6 @@ const completionStream = (messages: CompletionMessage[]) => {
 export { 
   request,
   completionNonStream,
-  completionStream
+  completionStream,
+  getChatTitle
 };
