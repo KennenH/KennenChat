@@ -50,6 +50,7 @@ const WindowHeader: React.FC<IWindowHeaderProps> = (props: IWindowHeaderProps) =
         src={icon}
         className='window-header-actions-button'
         onClick={actionConfigs[index].handleClickAction}
+        alt=''
       />
     );
   });

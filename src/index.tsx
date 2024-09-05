@@ -4,7 +4,7 @@ import { RouterProvider } from 'react-router-dom';
 import router from './router';
 import { Provider } from 'mobx-react';
 import './index.scss';
-import { ConfigProvider, theme } from 'antd';
+import { ConfigProvider } from 'antd';
 import globalStore from './store/globalStore';
 import messageStore from './store/MessageStore';
 
