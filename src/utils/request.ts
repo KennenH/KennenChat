@@ -3,7 +3,7 @@ import { CompletionBody, CompletionMessage } from "./type";
 import globalStore from "@/store/globalStore";
 
 const request = axios.create({
-  baseURL: 'http://118.178.231.120:8008',
+  baseURL: 'http://localhost:8008',
   timeout: 10000,
 });
 
@@ -30,6 +30,19 @@ const completionNonStream = (messages: CompletionMessage[]) => {
 }
 
 /**
+ * 获取对话标题
+ */
+const getChatTitle = (messages: CompletionMessage[]) => {
+  const requestBody: CompletionBody = {
+    messages,
+    temperature: globalStore.temperature,
+    top_p: globalStore.top_p,
+    penalty_score: globalStore.penalty_score,
+  }
+  return request.post('/api/next-chat/completion/title', requestBody);
+}
+
+/**
  * 流式响应
  */
 const completionStream = (messages: CompletionMessage[]) => {
@@ -39,7 +52,7 @@ const completionStream = (messages: CompletionMessage[]) => {
     top_p: globalStore.top_p,
     penalty_score: globalStore.penalty_score,
   }
-  return fetch('http://118.178.231.120:8008/api/next-chat/completion/stream', {
+  return fetch('http://localhost:8008/api/next-chat/completion/stream', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -51,5 +64,6 @@ const completionStream = (messages: CompletionMessage[]) => {
 export { 
   request,
   completionNonStream,
-  completionStream
+  completionStream,
+  getChatTitle
 };

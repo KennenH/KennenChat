@@ -14,7 +14,7 @@ import { CHAT_HOW_CAN_I_HELP_U, CHAT_LIST_KEY } from "@/constants";
 import { message } from "antd";
 import { v4 as uuidv4 } from 'uuid';
 import messageStore from "@/store/MessageStore";
-import { completionNonStream, completionStream } from "@/utils/request";
+import { completionNonStream, completionStream, getChatTitle } from "@/utils/request";
 import { CompletionMessage } from "@/utils/type";
 import { observer } from "mobx-react-lite";
 import { inject } from "mobx-react";
@@ -352,20 +352,14 @@ const HomeContainer: React.FC = () => {
             content: chat.content,
           } as CompletionMessage;
         });
-      titlePrompt.push({
-        role: Role[Sender.USER],
-        content: "请用一句话为当前对话取一个恰当的标题，回答不能包含任何前缀，请直接给出标题文字",
-      } as CompletionMessage);
 
       messageStore.setIsFetchingMsg(true);
-      completionNonStream(titlePrompt)
+      getChatTitle(titlePrompt)
         .then(res => {
           const title: string = res.data;
-          const i = title.indexOf('：');
-          const idx = i === -1 ? title.indexOf(':') : i;
           if (latestChatListRef.current) {
             latestChatListRef.current[selectedIdx].title = '';
-            typeTitle(title.substring(i + 1));
+            typeTitle(title);
           }
         })
         .catch(e => {
