@@ -151,7 +151,7 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
       this.initListVirtualHeights();
     } else if (messageList !== prevMessageList) { // 同一个聊天消息更新
       const { listVirtualHeights, scrolledOffset, listRealHeight } = this.state;
-      const isViewWindowAtBottom = (listVirtualHeights[id] - scrolledOffset - listRealHeight) < 100;
+      const isViewWindowAtBottom = (listVirtualHeights[id] - scrolledOffset - listRealHeight) < 50;
       // 若正在获取输出 && 滚动条接近底部
       // 或有新增消息，则自动滚动至底部
       const shouldScrollBottom = 
@@ -421,14 +421,14 @@ class KVirtualList extends React.Component<IKVirtualListProps, IKVirtualListStat
         position: 'absolute',
         top: offset,
       };
+      const isNewestAiMsg = i === messageList.length - 1 
+              && messageList[i].sender === Sender.ASSISTANT;
       renderList.push(
         <Message 
           key={messageList[i].fingerprint}
           message={messageList[i]}
           isShowLoading={
-            i === messageList.length - 1 
-              && messageList[i].sender === Sender.ASSISTANT
-              && messageStore.isConnecting
+            isNewestAiMsg && messageStore.isConnecting
           }
           onSizeChanged={offsetHeight => this.onChildSizeChanged(i, offsetHeight)}
           styles={itemStyles}

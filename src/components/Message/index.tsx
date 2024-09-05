@@ -4,12 +4,13 @@ import gpt from '@/assets/gpt_solid.svg';
 import { IChatMessage, Sender } from '../ChatCard';
 import { formatDate } from '@/utils/utils';
 import classNames from 'classnames';
-import { useEffect, useRef } from 'react';
+import React, { useLayoutEffect, useMemo, useRef } from 'react';
 import { LoadingOutlined } from '@ant-design/icons';
-import { Flex, Spin } from 'antd';
-import globalStore from '@/store/globalStore';
-import hljs from 'highlight.js';
+import { Spin } from 'antd';
 import 'highlight.js/styles/atom-one-dark.css';
+import { parseMarkdown } from '@/utils/markdown';
+import hljs from 'highlight.js';
+import globalStore from '@/store/globalStore';
 
 interface IMessageProps {
   message: IChatMessage,
@@ -40,78 +41,47 @@ const Message: React.FC<IMessageProps> = (
 
   const ref = useRef<HTMLDivElement>(null);
 
-  /**
-   * 转移字符防止 xss 攻击
-   */
-  const escapeHtml = (content: string) => {
-    return content.replace(/&/g, "&amp;")
-              .replace(/</g, "&lt;")
-              .replace(/>/g, "&gt;")
-              .replace(/"/g, "&quot;")
-              .replace(/'/g, "&#039;");
-  }
-
-  /**
-   * 将对应的符号转换为对应的样式
-   */
-  const parseMarkdown = (content: string) => {
-    // 转义
-    content = escapeHtml(content)
-      // 粗体 (**text**)
-      .replace(/(\*\*)(.*?)\1/g, '<strong>$2</strong>')
-      // 封闭代码块，中间必须还要加一个 \s，否则第一行的换行符不会被去掉
-      .replace(/^```(\w*)\s*([\s\S]*?)```/gm, '<pre><code>$2</code></pre>')
-      // 未封闭代码块, ``` 之后的所有文字都视为代码 
-      .replace(/^```(\w*)\s*([\s\S]*)/gm, '<pre><code>$2</code></pre>')
-      // 内联代码/标签 (`text`)
-      .replace(/`([^`]+)`/g, '<code class=\'message-markdown-inline-code\'>$1</code>')
-      // 有序列表 (1. )
-      .replace(/^\d+\.\s+(.*?)(\n|$)/gm, '<oli>$1</oli>')
-      .replace(/(<oli>.*?<\/oli>\n?)+/g, '<ol class=\'message-markdown-ol\'>$&</ol>')
-      // 无序列表 (-, *, + )
-      .replace(/^[\-\*\+]\s+(.*?)(\n|$)/gm, '<uli>$1</uli>')
-      .replace(/(<uli>.*?<\/uli>\n?)+/g, '<ul class=\'message-markdown-ul\'>$&</ul>');
-
-    // 标题 (h1-h6) #
-    for (let i = 6; i >= 1; i--) {
-      let header = '#'.repeat(i);
-      let regex = new RegExp(`^${header} (.*?)$\n`, 'gm');
-      content = content.replace(regex, `<h${i} class=\'message-markdown-h${i}\'>$1</h${i}>`);
-    }
-
-      // 统一替换占位符
-    content = content
-      .replace(/<uli>([\s\S]*?)<\/uli>/gm, '<li>$1</li>')
-      .replace(/<oli>([\s\S]*?)<\/oli>/gm, '<li>$1</li>');
-
-    return content;
-  }
-
-  // 组件挂载时监听 item 尺寸变化事件
-  useEffect(() => {
+  // 监听 item 尺寸变化事件
+  useLayoutEffect(() => {
+    const domRef = ref.current;
     const resizeObserver = new ResizeObserver(() => {
       requestAnimationFrame(() => {
-        if (ref.current) {
-          onSizeChanged && onSizeChanged(ref.current.offsetHeight);
+        if (domRef) {
+          onSizeChanged && onSizeChanged(domRef.offsetHeight);
         }
-        
-        // 代码高亮
-        hljs.highlightAll();
       });
     }); 
-    ref.current && resizeObserver.observe(ref.current);
+    domRef && resizeObserver.observe(domRef);
 
     // 卸载时取消监听
     return () => {
       resizeObserver 
-      && ref.current 
-      && resizeObserver.unobserve(ref.current);
+      && domRef
+      && resizeObserver.unobserve(domRef);
     };
-  }, []);
+  }, [onSizeChanged]);
 
-  useEffect(() => {
+  /**
+   * 将解析好的 code 区域进行高亮
+   */
+  const highlightCodeInString = (htmlString: string) => {
+    return htmlString.replace(/<pre><code[^>]*>([\s\S]*?)<\/code><\/pre>/g, (match, code) => {
+      // hljs.highlightAuto 直接处理整个 <pre><code> 结构
+      const highlightedCode = hljs.highlightAuto(code).value;
+      return `<pre><code class="hljs language-nsis">${highlightedCode}</code></pre>`;
+    });
+  }
 
-  }, [globalStore.isParseMarkdown]);
+  /**
+   * useMemo 防止重复解析相同内容
+   */
+  const parsedContent = useMemo(() => {
+    let { content } = message;
+    if (globalStore.isParseMarkdown) {
+      content = highlightCodeInString(parseMarkdown(content));
+    }
+    return content;
+  }, [message.content, message.fingerprint, globalStore.isParseMarkdown])
 
   return (
     <>
@@ -124,6 +94,7 @@ const Message: React.FC<IMessageProps> = (
           <div className={toggleClzBasedOnSender('message-header')}>
             <img 
               className={toggleClzBasedOnSender('message-header-avatar')}
+              alt='Avatar'
               src={
                 message.sender === Sender.ASSISTANT ?
                   gpt : user
@@ -141,7 +112,7 @@ const Message: React.FC<IMessageProps> = (
                   globalStore.isParseMarkdown
                   ? <div
                       className='message-content'
-                      dangerouslySetInnerHTML={{ __html: parseMarkdown(message.content) }}
+                      dangerouslySetInnerHTML={{ __html: parsedContent }}
                     />
                   : <div 
                       className='message-content'
