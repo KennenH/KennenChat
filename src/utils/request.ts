@@ -61,9 +61,17 @@ const completionStream = (messages: CompletionMessage[]) => {
   });
 }
 
+/**
+ * 事件埋点
+ */
+const eventTracking = () => {
+  request.post('/api/next-chat/tracking/github');
+}
+
 export { 
   request,
   completionNonStream,
   completionStream,
-  getChatTitle
+  getChatTitle,
+  eventTracking,
 };

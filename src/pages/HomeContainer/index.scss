@@ -7,9 +7,10 @@
   min-height: 370px;
   max-width: 1200px;
   border-radius: 20px;
+  box-shadow: var(--shadow);
   box-sizing: border-box;
-  background-color: #1e1e1e;
-  border: 1px solid hsla(0,0%,100%,.192);
+  background-color: var(--white);
+  border: var(--border-in-light);
 
   &.full-screen {
     --full-weight: 100vw;
@@ -25,7 +26,7 @@
   padding: 20px;
   flex-direction: column;
   width: var(--side-bar-width);
-  background-color: #1b262a;
+  background-color: var(--second);
   justify-content: space-around;
 }
 
@@ -33,16 +34,4 @@
   display: flex;
   flex-direction: column;
   width: calc(100% - var(--side-bar-width));
-}
-
-.home-chat-edit-modal-mask {
-  z-index: 9999;
-  top: 0;
-  left: 0;
-  position: fixed;
-  height: var(--full-height);
-  background-color: rgba(0,0,0,.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }

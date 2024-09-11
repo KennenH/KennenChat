@@ -2,6 +2,7 @@ import { Button } from 'antd';
 import './index.scss';
 import { GithubOutlined, PlusCircleOutlined, SettingOutlined } from '@ant-design/icons';
 import { MouseEventHandler } from 'react';
+import { eventTracking } from '@/utils/request';
 
 interface ISideBarFooterProps {
   handleClickSetting?: MouseEventHandler,
@@ -10,6 +11,7 @@ interface ISideBarFooterProps {
 
 const handleClickGithub = () => {
   // navigate to outer link github
+  eventTracking();
   window.location.href = 'https://github.com/KennenH/fe.KennenChat';
 }
 

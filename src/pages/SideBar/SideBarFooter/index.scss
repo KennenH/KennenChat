@@ -21,12 +21,7 @@
   align-items: center;
   cursor: pointer;
   overflow: hidden;
-  color: #bbb;
-  background-color: #1e1e1e;
+  color: var(--black);
+  background-color: var(--white);
   size: 12px;
-}
-
-.side-bar-footer-actions:hover {
-  background-color: #151515a4;
-  
 }
