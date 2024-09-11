@@ -48,8 +48,7 @@
   -webkit-user-select: none;
   -moz-user-select: none;
   user-select: none;
-  outline: none;
-  border: 1px solid hsla(0,0%,100%,.192);
+  border: var(--border-in-light);
   color: #168923;
 
   &.--me {
@@ -184,12 +183,12 @@
   }
 
   &::-webkit-scrollbar-thumb {
-      background: #404040;
+      background: var(--bar-color);
       border-radius: 4px;
   }
 
   &::-webkit-scrollbar-thumb:hover {
-      background: #404040;
+      background: var(--bar-color);
   }
 }
 

@@ -3,16 +3,17 @@
   padding: 10px 14px;
   border-radius: 10px;
   margin-bottom: 10px;
-  background-color: #1e1e1e;
+  position: relative;
+  background-color: var(--white);
   border: 2px solid transparent;
   transition: background-color .3s ease;
 
   &.--selected {
-    border: 2px solid #1d93ab;
+    border: 2px solid var(--primary);
   }
   
   &:hover {
-    background-color: #323232;
+    background-color: var(--hover-color);
 
     .chat-card-delete {  
       opacity: .5;

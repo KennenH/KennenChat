@@ -12,20 +12,32 @@ const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 
+/**
+ * @param color index.scss 中定义的颜色名
+ */
+const getColor = (color: string) => {
+  return getComputedStyle(document.documentElement).getPropertyValue(color);
+}
+
+const colors = {
+  gray: getColor('--gray'),
+  black: getColor('--black'),
+}
+
 root.render(
   <React.StrictMode>
     <ConfigProvider
       theme={{
         components: {
           Message: {
-            contentBg: '#151515',
+            contentBg: colors.gray,
           }
         },
         token: {
-          colorText: '#bbbbbb',
-          colorPrimaryHover: '#bbbbbb',
-          colorPrimaryActive: '#bbbbbb',
-          colorBgContainer: '#151515',
+          colorText: colors.black,
+          colorPrimaryHover: colors.black,
+          colorPrimaryActive: colors.black,
+          colorBgContainer: colors.gray,
         },
       }}
     >
