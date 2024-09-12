@@ -1,0 +1,59 @@
+name: NodeJS with Webpack
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: 检查代码
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 3: 安装依赖
+      - name: Install dependencies
+        run: npm install
+
+      # Step 4: 运行 Webpack 构建
+      - name: Build project
+        run: |
+          export ESLINT_NO_DEV_ERRORS=true
+          npm run build
+
+      # Step 5: 删除原 build 文件夹
+      - name: Remove old build folder on server
+        uses: appleboy/ssh-action@master
+        with:
+          host: 118.178.231.120
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.KENNENCHAT }}
+          script: |
+            rm -rf /var/www/kennenchat/build
+
+      # Step 6: 通过 SSH 将 build 文件夹传输到服务器
+      - name: Install SSH key  
+        uses: webfactory/ssh-agent@v0.5.4  
+        with:  
+          ssh-private-key: ${{ secrets.KENNENCHAT }}  
+  
+      - name: Deploy to server  
+        run: |    
+          scp -o StrictHostKeyChecking=no -P 22 -r build/* root@118.178.231.120:/var/www/kennenchat/
+
+      # Step 7: 在服务器上执行命令
+      - name: Execute remote commands
+        uses: appleboy/ssh-action@master
+        with:
+          host: 118.178.231.120
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.KENNENCHAT }}
+          script: |
+            cd /var/www/kennenchat/build/
+            npm install -g serve
+            nohup serve -s build &
+
