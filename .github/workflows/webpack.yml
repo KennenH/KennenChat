@@ -36,17 +36,17 @@ jobs:
             rm -rf /var/www/kennenchat/build
 
       # Step 6: 通过 SSH 将 build 文件夹传输到服务器
-      - name: Deploy to server  
-        uses: appleboy/scp-action@master  # 使用最新版本或指定一个稳定的版本  
-        env:  
-          HOST: ${{ secrets.SERVER_HOST }}  
-          USER: ${{ secrets.SERVER_USER }}  
-          KEY: ${{ secrets.KENNENCHAT }}  
-          PORT: 22  # 如果你的 SSH 端口不是默认的 22，请修改这个值  
-          SOURCE: "build/*"  
-          TARGET: "/var/www/kennenchat/"  
+      - name: Install SSH key  
+        uses: webfactory/ssh-agent@v0.5.4  
         with:  
-          args: "-r ${SOURCE}* ${USER}@${HOST}:${TARGET}"  
+          ssh-private-key: ${{ secrets.KENNENCHAT }}  
+  
+      - name: Deploy to server  
+        run: |    
+          scp -o StrictHostKeyChecking=no -P 22 -r build/* $SSH_USER@$SSH_HOST:/var/www/kennenchat/
+          env:  
+            SSH_USER: ${{ secrets.SSH_USER }}  
+            SSH_HOST: ${{ secrets.SSH_HOST }}  
 
       # Step 7: 在服务器上执行命令
       - name: Execute remote commands
