@@ -29,7 +29,7 @@ jobs:
       - name: Remove old build folder on server
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.SERVER_HOST }}
+          host: 118.178.231.120
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.KENNENCHAT }}
           script: |
@@ -43,16 +43,15 @@ jobs:
   
       - name: Deploy to server  
         run: |    
-          scp -o StrictHostKeyChecking=no -P 22 -r build/* $SSH_USER@$SSH_HOST:/var/www/kennenchat/
-          env:  
-            SSH_USER: ${{ secrets.SSH_USER }}  
-            SSH_HOST: ${{ secrets.SSH_HOST }}  
+          scp -o StrictHostKeyChecking=no -P 22 -r build/* $SSH_USER@118.178.231.120:/var/www/kennenchat/
+        env:  
+          SSH_USER: ${{ secrets.SSH_USER }}  
 
       # Step 7: 在服务器上执行命令
       - name: Execute remote commands
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.SERVER_HOST }}
+          host: 118.178.231.120
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.KENNENCHAT }}
           script: |
