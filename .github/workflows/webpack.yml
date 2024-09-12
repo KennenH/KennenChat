@@ -34,6 +34,7 @@ jobs:
           key: ${{ secrets.KENNENCHAT }}
           script: |
             rm -rf /var/www/kennenchat/build
+            mkdir /var/www/kennenchat/build
 
       # Step 6: 通过 SSH 将 build 文件夹传输到服务器
       - name: Install SSH key  
