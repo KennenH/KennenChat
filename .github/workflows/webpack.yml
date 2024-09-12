@@ -43,7 +43,7 @@ jobs:
   
       - name: Deploy to server  
         run: |    
-          scp -o StrictHostKeyChecking=no -P 22 -r build/* root@118.178.231.120:/var/www/kennenchat/
+          scp -o StrictHostKeyChecking=no -P 22 -r build/* root@118.178.231.120:/var/www/kennenchat/build/
 
       # Step 7: 在服务器上执行命令
       - name: Execute remote commands
