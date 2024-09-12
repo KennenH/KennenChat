@@ -79,7 +79,7 @@ const Chat: React.FC = observer((
         })
       : [];
     setNoneVirtualData(data);
-  }, [chatCardProps?.messageList, globalStore.isUseVirtualList]);
+  }, [chatCardProps?.messageList]);
 
   const titleConfig: WindowHeaderTitleConfig = { 
     primaryTitle: chatCardProps?.title ?? '新的聊天',

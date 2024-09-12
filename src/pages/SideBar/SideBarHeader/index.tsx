@@ -10,6 +10,7 @@ const SideBarHeader: React.FC = () => {
           <p className='side-bar-header-text'>Welcome to KChat. []~(￣▽￣)~*</p>
         </div>
         <img
+          alt='KChat'
           className='side-bar-header-icon'
           src={logo} 
         />

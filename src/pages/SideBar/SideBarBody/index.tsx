@@ -1,6 +1,6 @@
-import { MouseEventHandler, useEffect } from 'react';
+import { MouseEventHandler } from 'react';
 import './index.scss';
-import ChatCard, { IChatCardProps, Sender } from '@/components/ChatCard';
+import ChatCard, { IChatCardProps } from '@/components/ChatCard';
 interface ISideBarBodyProps {
   chatList?: IChatCardProps[] | null,
   selectedIdx: number,

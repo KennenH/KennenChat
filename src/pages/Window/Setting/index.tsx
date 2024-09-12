@@ -20,9 +20,9 @@ const Setting: React.FC<ISettingProps> = () => {
 
   const nav = useNavigate();
 
-  const {
+  // const {
     
-  } = useOutletContext() as ISettingProps;
+  // } = useOutletContext() as ISettingProps;
 
   const titleConfig: WindowHeaderTitleConfig = { 
     primaryTitle: '设置',

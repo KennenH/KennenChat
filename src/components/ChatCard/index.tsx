@@ -1,5 +1,4 @@
 import './index.scss';
-import _ from 'lodash';
 import { formatDate } from '@/utils/utils';
 import classNames from 'classnames';
 import { CloseCircleOutlined } from '@ant-design/icons';

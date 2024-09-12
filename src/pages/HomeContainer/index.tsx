@@ -14,7 +14,7 @@ import { CHAT_HOW_CAN_I_HELP_U, CHAT_LIST_KEY } from "@/constants";
 import { message } from "antd";
 import { v4 as uuidv4 } from 'uuid';
 import messageStore from "@/store/MessageStore";
-import { completionNonStream, completionStream, getChatTitle } from "@/utils/request";
+import { completionStream, getChatTitle } from "@/utils/request";
 import { CompletionMessage } from "@/utils/type";
 import { observer } from "mobx-react-lite";
 import { inject } from "mobx-react";
@@ -148,7 +148,7 @@ const HomeContainer: React.FC = () => {
     return (() => {
       window.removeEventListener('keydown', handleKeyDown);
     });
-  }, [chatList]);
+  }, [chatList, messageApi]);
 
   /**
    * 删除一个 chat card
@@ -423,12 +423,6 @@ const HomeContainer: React.FC = () => {
     handleToggleFullScreen: handleToggleFullScreen,
     handleClickEdit: handleClickEdit,
     handleClickSendMessage: handleClickSendMessage,
-  };
-
-  /**
-   * 二级路由 setting 参数
-   */
-  const settingParam: ISettingProps = {
   };
 
   return (

@@ -28,14 +28,14 @@ const parseMarkdown = (content: string) => {
     .replace(/^\d+\.\s+(.*?)(\n|$)/gm, '<oli>$1</oli>')
     .replace(/(<oli>.*?<\/oli>\n?)+/g, '<ol class=\'message-markdown-ol\'>$&</ol>')
     // 无序列表 (-, *, + )
-    .replace(/^[\-\*\+]\s+(.*?)(\n|$)/gm, '<uli>$1</uli>')
+    .replace(/^[-*+]\s+(.*?)(\n|$)/gm, '<uli>$1</uli>')
     .replace(/(<uli>.*?<\/uli>\n?)+/g, '<ul class=\'message-markdown-ul\'>$&</ul>');
 
   // 标题 (h1-h6) #
   for (let i = 6; i >= 1; i--) {
     let header = '#'.repeat(i);
     let regex = new RegExp(`^${header} (.*?)$\n`, 'gm');
-    content = content.replace(regex, `<h${i} class=\'message-markdown-h${i}\'>$1</h${i}>`);
+    content = content.replace(regex, `<h${i} class='message-markdown-h${i}'>$1</h${i}>`);
   }
 
     // 统一替换占位符

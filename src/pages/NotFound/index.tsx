@@ -6,6 +6,7 @@ const NotFound = () => {
     <>
       <div className='not-found-container'>
         <img
+          alt='not-found'
           className='not-found' 
           src={logo}
           />
