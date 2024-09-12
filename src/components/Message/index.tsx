@@ -81,7 +81,7 @@ const Message: React.FC<IMessageProps> = (
       content = highlightCodeInString(parseMarkdown(content));
     }
     return content;
-  }, [message.content, message.fingerprint, message])
+  }, [message])
 
   return (
     <>

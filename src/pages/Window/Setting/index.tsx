@@ -1,4 +1,4 @@
-import { NavigateFunction, useNavigate, useOutletContext } from 'react-router-dom';
+import { NavigateFunction, useNavigate } from 'react-router-dom';
 import './index.scss';
 import WindowHeader, { WindowHeaderActionConfig, WindowHeaderTitleConfig } from '@/components/WindowHeader';
 import SettingList, { ISettingListProps } from '@/components/SettingList';

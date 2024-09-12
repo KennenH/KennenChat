@@ -6,7 +6,6 @@ import SideBarBody from "../SideBar/SideBarBody";
 import SideBarFooter from "../SideBar/SideBarFooter";
 import { IChatCardProps, IChatMessage, Role, Sender } from "@/components/ChatCard";
 import { IChatProps } from "../Window/Chat";
-import { ISettingProps } from "../Window/Setting";
 import classNames from "classnames";
 import _ from "lodash";
 import localforage from "localforage";
